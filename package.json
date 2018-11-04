@@ -20,7 +20,8 @@
   "homepage": "https://github.com/olif/huskutlir#readme",
   "dependencies": {
     "react": "^16.4.1",
-    "react-dom": "^16.4.1"
+    "react-dom": "^16.4.1",
+    "shortid": "^2.2.14"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.1.0",

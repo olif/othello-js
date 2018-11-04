@@ -1,6 +1,26 @@
+const shortid = require('shortid');
+
 const games = {};
 const boardSize = 8;
 const emptyDisc = 0;
+
+const STATUS_FINISHED = 'finished';
+const STATUS_PENDING = 'pending';
+const STATUS_WAITING_FOR_OPPONENT = 'waiting for opponent';
+
+const defaultState = function () {
+    return [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, -1, 0, 0, 0],
+        [0, 0, 0, -1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ];
+};
+
 
 const directions = [
     [1, 0],      // Right
@@ -13,22 +33,14 @@ const directions = [
     [0, -1]      // Up
 ];
 
-const newGame = function (player1) {
+const newGame = function (player1, initState, initTurn) {
     let game = {
-        id: 'asca',
+        id: shortid.generate(),
         player1: player1,
         player2: null,
-        turn: 1,
-        board: [
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, -1, 0, 0, 0],
-            [0, 0, 0, -1, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0]
-        ]
+        status: STATUS_WAITING_FOR_OPPONENT,
+        turn: initTurn || 1,
+        board: initState || defaultState()
     };
 
     games[game.id] = game;
@@ -38,28 +50,35 @@ const newGame = function (player1) {
 const state = function (id) {
     const game = games[id];
     if (!game) {
-        return { board: null, err: 'Game not found' };
+        return [null, new Error('Game not found')];
     }
-    return { state: game, err: null };
+    return [ game, null ];
 };
 
-const colorHasMove = function(id, color) {
+const join = function(id, player) {
     const game = games[id];
-    for (let y = 0; y < boardSize; y++) {
-        for (let x = 0; x < boardSize; x++) {
-            let discsToFlip = checkDiscsToFlip(game, { x: x, y: y, color: color });
-            if (discsToFlip.length > 0) {
-                return true;
-            }
-        }
+    if(!game) {
+        return [null, new Error('Game not found')];
     }
-    return false;
+
+    if(game.player2) {
+        return [null, new Error('Cannot join already joined game')];
+    }
+
+    game.player2 = player;
+    game.status = STATUS_PENDING;
+    return state(id);
 };
+
 
 const makeMove = function (id, move) {
     const game = games[id];
     if (!game) {
-        return { discsToFlip: null, err: 'Game not found' };
+        return [null, new Error('Game not found')];
+    }
+
+    if(game.turn != move.color) {
+        return [null, new Error('Not players turn')];
     }
 
     const { x, y, color } = move;
@@ -67,17 +86,27 @@ const makeMove = function (id, move) {
 
     if (discsToFlip.length > 0) {
         discsToFlip.push({ x, y });
+        game.turn = colorForNextTurn(game);
+        if(game.turn === emptyDisc) {
+            game.status = STATUS_FINISHED;
+        }
+
     }
 
     discsToFlip.forEach(({ x, y }) => {
         game.board[y][x] = color;
     });
 
-    return { discsToFlip: discsToFlip, err: null };
+    return [ discsToFlip, null ];
 };
 
 const checkDiscsToFlip = function (game, move) {
     let discsToFlip = [];
+
+    if(game.board[move.y][move.x] !== emptyDisc) {
+        return discsToFlip;
+    }
+
     directions.forEach(direction => {
         let discstoFlipInDirection = [];
         let board = game.board;
@@ -99,6 +128,7 @@ const checkDiscsToFlip = function (game, move) {
         }
         discsToFlip = [...discsToFlip, ...discstoFlipInDirection];
     });
+
     return discsToFlip;
 };
 
@@ -106,6 +136,34 @@ const isPositionWithinBoundaries = function(x, y) {
     return x >= 0 && x < boardSize && y >= 0 && y < boardSize;
 };
 
+const colorForNextTurn = function(game) {
+    let maybeNextTurnColor = game.turn * -1;
+    if(colorHasMove(game, maybeNextTurnColor)) {
+        return maybeNextTurnColor;
+    } else if (colorHasMove(game, game.turn)) {
+        return game.turn;
+    } else {
+        return 0; // Game finised
+    }
+};
+
+const colorHasMove = function(game, color) {
+    for (let y = 0; y < boardSize; y++) {
+        for (let x = 0; x < boardSize; x++) {
+            let discsToFlip = checkDiscsToFlip(game, { x: x, y: y, color: color });
+            if (discsToFlip.length > 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+module.exports.STATUS_FINISHED = STATUS_FINISHED;
+module.exports.STATUS_PENDING = STATUS_PENDING;
+module.exports.STATUS_WAITING_FOR_OPPONENT = STATUS_PENDING;
 module.exports.newGame = newGame;
-module.exports.makeMove = makeMove;
+module.exports.join = join;
 module.exports.state = state;
+module.exports.makeMove = makeMove;
+
