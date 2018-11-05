@@ -84,15 +84,18 @@ const makeMove = function (id, move) {
 
   if (discsToFlip.length > 0) {
     discsToFlip.push({ x, y })
-    game.turn = colorForNextTurn(game)
-    if (game.turn === emptyDisc) {
-      game.status = STATUS_FINISHED
-    }
   }
 
   discsToFlip.forEach(({ x, y }) => {
     game.board[y][x] = color
   })
+
+  if (discsToFlip.length > 0) {
+    game.turn = colorForNextTurn(game)
+    if (game.turn === emptyDisc) {
+      game.status = STATUS_FINISHED
+    }
+  }
 
   return [discsToFlip, null]
 }
@@ -140,7 +143,7 @@ const colorForNextTurn = function (game) {
   } else if (colorHasMove(game, game.turn)) {
     return game.turn
   } else {
-    return 0 // Game finised
+    return emptyDisc // Game finised
   }
 }
 
@@ -149,6 +152,7 @@ const colorHasMove = function (game, color) {
     for (let x = 0; x < boardSize; x++) {
       let discsToFlip = checkDiscsToFlip(game, { x: x, y: y, color: color })
       if (discsToFlip.length > 0) {
+        console.log(`Valid move ${x}, ${y}`)
         return true
       }
     }

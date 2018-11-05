@@ -83,7 +83,6 @@ test('cannot make move when it is not players turn', () => {
 
 test('can make multiple moves', () => {
   let [state] = games.newGame({ name: 'Arne' })
-  // games.makeMove(state.id, { x: 4, y: 5, color: 1 })
   let [discsToFlip, err] = games.makeMove(state.id, { x: 5, y: 3, color: 1 });
   ([state] = games.state(state.id))
 
@@ -133,7 +132,7 @@ test('player can make multiple moves if there is no valid move for opponent', ()
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 5
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
-  ] // 0    1    2    3    4    5    6    7))
+  ]// 0    1    2    3    4    5    6    7))
   ), -1)
 
   games.makeMove(state.id, { x: 7, y: 0, color: -1 });
@@ -147,8 +146,42 @@ test('player can make multiple moves if there is no valid move for opponent', ()
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 5
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
-  ]))
+  ]// 0    1    2    3    4    5    6    7
+  ))
   expect(state.turn).toBe(-1)
+})
+
+test('game is finished when no player can make a move', () => {
+  let [state] = games.newGame({ name: 'Arne' }, fromPrettyBoard([
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 1
+    [' ', ' ', 'X', ' ', 'X', ' ', ' ', ' '], // 2
+    [' ', ' ', 'X', 'O', 'X', ' ', ' ', ' '], // 3
+    [' ', ' ', 'X', 'X', 'X', ' ', ' ', ' '], // 4
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 5
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
+  ]// 0    1    2    3    4    5    6    7
+  ), -1)
+  games.join(state.id, { name: 'Pelle' })
+
+  let [discsToFlip, err] = games.makeMove(state.id, { x: 3, y: 2, color: -1 });
+  ([state, err] = games.state(state.id))
+
+  expect(err).toBeNull()
+  expect(discsToFlip).toMatchObject([{ x: 3, y: 3 }, { x: 3, y: 2 }])
+  expect(state.board).toMatchObject(fromPrettyBoard([
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 1
+    [' ', ' ', 'X', 'X', 'X', ' ', ' ', ' '], // 2
+    [' ', ' ', 'X', 'X', 'X', ' ', ' ', ' '], // 3
+    [' ', ' ', 'X', 'X', 'X', ' ', ' ', ' '], // 4
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 5
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
+  ]// 0    1    2    3    4    5    6    7
+  ))
+  expect(state.status).toBe(games.STATUS_FINISHED)
 })
 
 const fromPrettyBoard = function (arr) {
