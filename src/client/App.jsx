@@ -1,12 +1,11 @@
-'use strict';
-import React, { Component } from 'react';
+'use strict'
+import React, { Component } from 'react'
 import GameBoard from './GameBoard.jsx'
 import Start from './Start.jsx'
 import './app.css'
 
 export default class App extends React.Component {
-
-  render() {
+  render () {
     return (
       <React.Fragment>
         {console.log(window.location.pathname)}
@@ -16,7 +15,3 @@ export default class App extends React.Component {
     )
   }
 }
-
-
-
-
