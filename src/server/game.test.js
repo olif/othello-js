@@ -4,7 +4,7 @@ test('can create a new game', () => {
   let [state, err] = games.newGame({ name: 'Arne' })
 
   expect(err).toBeNull()
-  expect(state.player1.name).toBe('Arne')
+  expect(state.whitePlayer).toBe('Arne')
   expect(state.status).toBe(games.STATUS_WAITING_FOR_OPPONENT)
 })
 
@@ -14,7 +14,7 @@ test('can join game', () => {
   ([state, err] = games.join(state.id, { name: 'Bengan' }))
 
   expect(err).toBeNull()
-  expect(state.player2.name).toBe('Bengan')
+  expect(state.blackPlayer).toBe('Bengan')
   expect(state.status).toBe(games.STATUS_PENDING)
 })
 
@@ -27,15 +27,16 @@ test('cannot join already joined game', () => {
 
   expect(failedJoinErr).toMatchObject(new Error('Cannot join already joined game'))
   expect(state.turn).toBe(1)
-  expect(state.player2.name).toBe('Bengan')
+  expect(state.blackPlayer).toBe('Bengan')
 })
 
 test('can make opening move', () => {
-  let [state] = games.newGame({ name: 'Arne' })
-  let [discsToFlip, err] = games.makeMove(state.id, { x: 4, y: 2, color: 1 })
+  let player = { name: 'Arne', token: 'Abcs' }
+  let [state, err] = games.newGame(player);
+  ([state, err] = games.makeMove(state.id, player, { x: 4, y: 2 }))
 
   expect(err).toBeNull()
-  expect(discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 4, y: 2 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 4, y: 2 }])
   expect(state.turn).toBe(-1)
   expect(state.board).toMatchObject(fromPrettyBoard(
     [
@@ -47,17 +48,17 @@ test('can make opening move', () => {
       [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 5
       [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
       [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
-    ]//   0    1    2    3    4    5    6    7
+    ]// 0    1    2    3    4    5    6    7
   ))
 })
 
 test('cannot make simple invalid move', () => {
-  let [state] = games.newGame({ name: 'Arne' })
-  let [discsToFlip, err] = games.makeMove(state.id, { x: 4, y: 6, color: 1 });
-  ([state] = games.state(state.id))
+  let player = { name: 'Arne', token: 'adasca' }
+  let [state, err] = games.newGame(player);
+  ([state, err] = games.makeMove(state.id, player, { x: 4, y: 6 }))
 
   expect(err).toBeNull()
-  expect(discsToFlip).toMatchObject([])
+  expect(state.discsToFlip).toMatchObject([])
   expect(state.turn).toBe(1)
   expect(state.board).toMatchObject(fromPrettyBoard(
     [
@@ -74,20 +75,22 @@ test('cannot make simple invalid move', () => {
 })
 
 test('cannot make move when it is not players turn', () => {
-  let [state] = games.newGame({ name: 'Arne' })
-  let [discsToFlip, err] = games.makeMove(state.id, { x: 5, y: 4, color: -1 })
+  let player = { name: 'Arne', token: 'testsa' }
+  let [state, err] = games.newGame(player, null, games.BLACK_DISC);
+  ([state, err] = games.makeMove(state.id, player, { x: 5, y: 4 }))
 
   expect(err).toMatchObject(new Error('Not players turn'))
-  expect(discsToFlip).toBeNull()
+  expect(state).toBeNull()
 })
 
 test('can make multiple moves', () => {
-  let [state] = games.newGame({ name: 'Arne' })
-  let [discsToFlip, err] = games.makeMove(state.id, { x: 5, y: 3, color: 1 });
-  ([state] = games.state(state.id))
+  let whitePlayer = { name: 'White player', token: 'testsa' }
+  let blackPlayer = { name: 'Black player', token: 'cascsdc' }
+  let [state, err] = games.newGame(whitePlayer);
+  ([state, err] = games.makeMove(state.id, whitePlayer, { x: 5, y: 3 }))
 
   expect(err).toBeNull()
-  expect(discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 5, y: 3 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 5, y: 3 }])
   expect(state.turn).toBe(-1)
   expect(state.board).toMatchObject(fromPrettyBoard(
     [
@@ -100,13 +103,13 @@ test('can make multiple moves', () => {
       [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
       [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
     ])//  0    1    2    3    4    5    6    7
-  );
+  )
 
-  ([discsToFlip, err] = games.makeMove(state.id, { x: 5, y: 2, color: -1 }));
-  ([state] = games.state(state.id))
+  games.join(state.id, blackPlayer);
+  ([state, err] = games.makeMove(state.id, blackPlayer, { x: 5, y: 2 }))
 
   expect(err).toBeNull()
-  expect(discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 5, y: 2 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 5, y: 2 }])
   expect(state.turn).toBe(1)
   expect(state.board).toMatchObject(fromPrettyBoard(
     [
@@ -123,7 +126,9 @@ test('can make multiple moves', () => {
 })
 
 test('player can make multiple moves if there is no valid move for opponent', () => {
-  let [state] = games.newGame({ name: 'Arne' }, fromPrettyBoard([
+  let whitePlayer = { name: 'White player', token: 'testsa' }
+  let blackPlayer = { name: 'Black player', token: 'cascsdc' }
+  let [state] = games.newGame(whitePlayer, fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'O'], // 1
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'], // 2
@@ -135,7 +140,9 @@ test('player can make multiple moves if there is no valid move for opponent', ()
   ]// 0    1    2    3    4    5    6    7))
   ), -1)
 
-  games.makeMove(state.id, { x: 7, y: 0, color: -1 });
+  games.join(state.id, blackPlayer)
+
+  games.makeMove(state.id, blackPlayer, { x: 7, y: 0 });
   ([state] = games.state(state.id))
   expect(state.board).toMatchObject(fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'], // 0
@@ -148,11 +155,13 @@ test('player can make multiple moves if there is no valid move for opponent', ()
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
   ]// 0    1    2    3    4    5    6    7
   ))
-  expect(state.turn).toBe(-1)
+  expect(state.turn).toBe(games.BLACK_DISC)
 })
 
 test('game is finished when no player can make a move', () => {
-  let [state] = games.newGame({ name: 'Arne' }, fromPrettyBoard([
+  let whitePlayer = { name: 'White player', token: 'testsa' }
+  let blackPlayer = { name: 'Black player', token: 'cascsdc' }
+  let [state, err] = games.newGame(whitePlayer, fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 1
     [' ', ' ', 'X', ' ', 'X', ' ', ' ', ' '], // 2
@@ -162,14 +171,13 @@ test('game is finished when no player can make a move', () => {
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
   ]// 0    1    2    3    4    5    6    7
-  ), -1)
-  games.join(state.id, { name: 'Pelle' })
+  ), games.BLACK_DISC)
+  games.join(state.id, blackPlayer);
 
-  let [discsToFlip, err] = games.makeMove(state.id, { x: 3, y: 2, color: -1 });
-  ([state, err] = games.state(state.id))
+  ([state, err] = games.makeMove(state.id, blackPlayer, { x: 3, y: 2 }))
 
   expect(err).toBeNull()
-  expect(discsToFlip).toMatchObject([{ x: 3, y: 3 }, { x: 3, y: 2 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 3, y: 3 }, { x: 3, y: 2 }])
   expect(state.board).toMatchObject(fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 1
