@@ -71,6 +71,7 @@ const state = function (id, player, discsToFlip) {
   if (!game) {
     return [null, new Error('Game not found')]
   }
+
   return [{
     id: id,
     whitePlayer: game.whitePlayer ? game.whitePlayer.name : '',
@@ -105,32 +106,29 @@ const makeMove = function (id, player, position) {
   }
 
   let disc = getDiscForPlayer(game, player)
-
-  if (game.turn !== disc) {
+  if (!isPlayersTurn(game, disc)) {
     return [null, new Error('Not players turn')]
   }
 
-  const { x, y } = position
-  const discsToFlip = checkDiscsToFlip(game, disc, position) || []
+  const discsToFlip = getDiscsToFlip(game, disc, position)
+  discsToFlip.forEach(({ x, y }) => { game.board[y][x] = disc })
 
   if (discsToFlip.length > 0) {
-    discsToFlip.push({ x, y })
+    toogleTurn(game)
   }
 
-  discsToFlip.forEach(({ x, y }) => {
-    game.board[y][x] = disc
-  })
+  game.status = resolveStatus(game)
+  const event = game.status === STATUS_FINISHED ? EVENT_GAME_FINISHED : EVENT_STATE_CHANGED
 
-  if (discsToFlip.length > 0) {
-    game.turn = discForNextTurn(game)
-    if (game.turn === EMPTY_DISC) {
-      game.status = STATUS_FINISHED
-      return notify(EVENT_GAME_FINISHED, state(game.id, player, discsToFlip))
-    }
-  }
+  return notify(event, state(game.id, player, discsToFlip))
+}
 
-  game.discsToFlip = discsToFlip
-  return notify(EVENT_STATE_CHANGED, state(game.id, player, discsToFlip))
+const isPlayersTurn = function (game, disc) {
+  return game.turn === disc
+}
+
+const resolveStatus = function (game) {
+  return game.turn === EMPTY_DISC ? STATUS_FINISHED : EVENT_STATE_CHANGED
 }
 
 const getDiscForPlayer = function (game, player) {
@@ -147,7 +145,7 @@ const getDiscForPlayer = function (game, player) {
   return disc
 }
 
-const checkDiscsToFlip = function (game, disc, position) {
+const getDiscsToFlip = function (game, disc, position) {
   let discsToFlip = []
 
   if (game.board[position.y][position.x] !== EMPTY_DISC) {
@@ -176,6 +174,10 @@ const checkDiscsToFlip = function (game, disc, position) {
     discsToFlip = [...discsToFlip, ...discstoFlipInDirection]
   })
 
+  if (discsToFlip.length > 0) {
+    discsToFlip = [position, ...discsToFlip]
+  }
+
   return discsToFlip
 }
 
@@ -183,21 +185,20 @@ const isPositionWithinBoundaries = function (x, y) {
   return x >= 0 && x < boardSize && y >= 0 && y < boardSize
 }
 
-const discForNextTurn = function (game) {
+const toogleTurn = function (game) {
   let maybeNextTurnDisc = game.turn * -1
   if (discHasMove(game, maybeNextTurnDisc)) {
-    return maybeNextTurnDisc
+    game.turn = maybeNextTurnDisc
   } else if (discHasMove(game, game.turn)) {
-    return game.turn
   } else {
-    return EMPTY_DISC // Game finised
+    game.turn = EMPTY_DISC // Game finished
   }
 }
 
 const discHasMove = function (game, disc) {
   for (let y = 0; y < boardSize; y++) {
     for (let x = 0; x < boardSize; x++) {
-      let discsToFlip = checkDiscsToFlip(game, disc, { x: x, y: y })
+      let discsToFlip = getDiscsToFlip(game, disc, { x: x, y: y })
       if (discsToFlip.length > 0) {
         return true
       }

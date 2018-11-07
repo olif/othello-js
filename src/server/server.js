@@ -16,6 +16,9 @@ const sockets = {}
 const server = http.createServer(app)
 
 app.use(bodyParser.json())
+app.use(express.static('dist'))
+
+app.use('/game', express.static('dist'))
 
 app.post('/api/new', (req, res) => {
   if (!req.body) {
@@ -117,8 +120,6 @@ app.post('/api/make-move', (req, res) => {
 
   res.status(200).send(state)
 })
-
-// let server = app.listen(port, () => console.log(`Listening on port ${port}`))
 
 let wss = new ws.Server({ server }).on('connection', (ws, req) => {
   const uri = url.parse(req.url, true)

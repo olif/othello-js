@@ -36,7 +36,7 @@ test('can make opening move', () => {
   ([state, err] = games.makeMove(state.id, player, { x: 4, y: 2 }))
 
   expect(err).toBeNull()
-  expect(state.discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 4, y: 2 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 4, y: 2 }, { x: 4, y: 3 }])
   expect(state.turn).toBe(-1)
   expect(state.board).toMatchObject(fromPrettyBoard(
     [
@@ -90,7 +90,7 @@ test('can make multiple moves', () => {
   ([state, err] = games.makeMove(state.id, whitePlayer, { x: 5, y: 3 }))
 
   expect(err).toBeNull()
-  expect(state.discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 5, y: 3 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 5, y: 3 }, { x: 4, y: 3 }])
   expect(state.turn).toBe(-1)
   expect(state.board).toMatchObject(fromPrettyBoard(
     [
@@ -109,7 +109,7 @@ test('can make multiple moves', () => {
   ([state, err] = games.makeMove(state.id, blackPlayer, { x: 5, y: 2 }))
 
   expect(err).toBeNull()
-  expect(state.discsToFlip).toMatchObject([{ x: 4, y: 3 }, { x: 5, y: 2 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 5, y: 2 }, { x: 4, y: 3 }])
   expect(state.turn).toBe(1)
   expect(state.board).toMatchObject(fromPrettyBoard(
     [
@@ -177,7 +177,7 @@ test('game is finished when no player can make a move', () => {
   ([state, err] = games.makeMove(state.id, blackPlayer, { x: 3, y: 2 }))
 
   expect(err).toBeNull()
-  expect(state.discsToFlip).toMatchObject([{ x: 3, y: 3 }, { x: 3, y: 2 }])
+  expect(state.discsToFlip).toMatchObject([{ x: 3, y: 2 }, { x: 3, y: 3 }])
   expect(state.board).toMatchObject(fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 1
