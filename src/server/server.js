@@ -1,4 +1,6 @@
 const express = require('express')
+const http = require('http')
+const url = require('url')
 const bodyParser = require('body-parser')
 const ws = require('ws')
 const shortid = require('shortid')
@@ -9,14 +11,13 @@ const port = process.env.PORT || 8080
 
 const invitationTokens = {}
 const playerTokens = {}
+const sockets = {}
+
+const server = http.createServer(app)
 
 app.use(bodyParser.json())
 
-games.setStateChangedCallback(function (event, state) {
-  console.log(`${event}`)
-})
-
-app.post('/new', (req, res) => {
+app.post('/api/new', (req, res) => {
   if (!req.body) {
     res.status(400).send('name must be specified')
     return
@@ -24,7 +25,7 @@ app.post('/new', (req, res) => {
 
   let playerToken = shortid.generate()
   let invitationToken = shortid.generate()
-  let player = { token: playerToken, name: req.body.name }
+  let player = { token: playerToken, name: req.body.name || 'unknown' }
 
   let [state, err] = games.newGame(player)
 
@@ -43,7 +44,29 @@ app.post('/new', (req, res) => {
   })
 })
 
-app.post('/join', (req, res) => {
+app.get('/api/game', (req, res) => {
+  let token = req.query.token
+  if (!token) {
+    res.status(400).send({ msg: `invalid token: ${token}` })
+    return
+  }
+
+  let gameId = playerTokens[token]
+  if (!gameId) {
+    res.status(400).send({ msg: `invalid token: ${token}` })
+    return
+  }
+
+  let [state, err] = games.state(gameId, { token: token }, [])
+  if (err) {
+    res.status(400).send({ msg: err.toString() })
+    return
+  }
+
+  res.status(200).send({ state: state })
+})
+
+app.post('/api/join', (req, res) => {
   let invitationToken = req.query.token
   if (!invitationToken) {
     res.status(400).send({ msg: 'invalid token' })
@@ -57,7 +80,7 @@ app.post('/join', (req, res) => {
   }
 
   let playerToken = shortid.generate()
-  let player = { token: playerToken, name: req.body.name }
+  let player = { token: playerToken, name: req.body.name || 'unknown' }
   let [state, err] = games.join(gameId, player)
   if (err) {
     res.status(500).send({ msg: err })
@@ -73,7 +96,7 @@ app.post('/join', (req, res) => {
   })
 })
 
-app.post('/make-move', (req, res) => {
+app.post('/api/make-move', (req, res) => {
   let token = req.query.token
   if (!token) {
     res.status(400).send({ msg: 'invalid token' }, 400)
@@ -95,8 +118,23 @@ app.post('/make-move', (req, res) => {
   res.status(200).send(state)
 })
 
-const server = app.listen(port, () => console.log(`Listening on port ${port}`))
+// let server = app.listen(port, () => console.log(`Listening on port ${port}`))
 
-new ws.Server({ server }).on('connection', () => {
-  console.log('hello')
+let wss = new ws.Server({ server }).on('connection', (ws, req) => {
+  const uri = url.parse(req.url, true)
+  const token = uri.query.token
+  sockets[token] = ws
 })
+
+games.setStateChangedCallback(function (event, state) {
+  let players = Object.keys(playerTokens).filter((key) => playerTokens[key] === state.id)
+  if (players) {
+    players.map(token => {
+      let ws = sockets[token]
+      console.log(ws)
+      ws.send(JSON.stringify(state))
+    })
+  }
+})
+
+server.listen(port, () => console.log(`Server started on port ${port}`))

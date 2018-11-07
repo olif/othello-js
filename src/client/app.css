@@ -1,3 +1,13 @@
+html, body {
+    font-family: Arial, Helvetica, sans-serif
+}
+
+.start-page h1 {
+    text-align: center;
+    display: block;
+}
+
+
 table.gameboard {
     background-color: #339966;
     width: 600px;

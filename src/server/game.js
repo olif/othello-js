@@ -47,7 +47,7 @@ const setStateChangedCallback = function (cb) {
 
 const notify = function (event, state) {
   if (stateChangedCallback) {
-    stateChangedCallback(event, state)
+    stateChangedCallback(event, state[0])
   }
   return state
 }
@@ -63,10 +63,10 @@ const newGame = function (whitePlayer, initState, initDisc) {
   }
 
   games[game.id] = game
-  return notify(EVENT_GAME_CREATED, state(game.id))
+  return notify(EVENT_GAME_CREATED, state(game.id, whitePlayer))
 }
 
-const state = function (id, discsToFlip) {
+const state = function (id, player, discsToFlip) {
   const game = games[id]
   if (!game) {
     return [null, new Error('Game not found')]
@@ -77,6 +77,7 @@ const state = function (id, discsToFlip) {
     blackPlayer: game.blackPlayer ? game.blackPlayer.name : '',
     status: game.status,
     turn: game.turn,
+    disc: getDiscForPlayer(game, player),
     discsToFlip: discsToFlip || [],
     board: game.board
   }, null]
@@ -94,7 +95,7 @@ const join = function (id, player) {
 
   game.blackPlayer = player
   game.status = STATUS_PENDING
-  return notify(EVENT_GAME_JOINED, state(game.id))
+  return notify(EVENT_GAME_JOINED, state(game.id, player))
 }
 
 const makeMove = function (id, player, position) {
@@ -124,16 +125,20 @@ const makeMove = function (id, player, position) {
     game.turn = discForNextTurn(game)
     if (game.turn === EMPTY_DISC) {
       game.status = STATUS_FINISHED
-      return notify(EVENT_GAME_FINISHED, state(game.id, discsToFlip))
+      return notify(EVENT_GAME_FINISHED, state(game.id, player, discsToFlip))
     }
   }
 
   game.discsToFlip = discsToFlip
-  return notify(EVENT_STATE_CHANGED, state(game.id, discsToFlip))
+  return notify(EVENT_STATE_CHANGED, state(game.id, player, discsToFlip))
 }
 
 const getDiscForPlayer = function (game, player) {
   let disc = EMPTY_DISC
+  if (!player.token) {
+    throw new Error('Player has no token')
+  }
+
   if (player.token === game.whitePlayer.token) {
     disc = WHITE_DISC
   } else if (player.token === game.blackPlayer.token) {

@@ -15,10 +15,7 @@ module.exports = {
       test: /\.jsx?$/,
       exclude: /node_modules/,
       use: {
-        loader: 'babel-loader',
-        options: {
-          presets: ['@babel/preset-react']
-        }
+        loader: 'babel-loader'
       }
     }, {
       test: /\.css$/,
@@ -28,6 +25,12 @@ module.exports = {
   devServer: {
     port: 3000,
     open: true,
+    proxy: {
+      '/api': {
+        ws: true,
+        target: 'http://localhost:8080'
+      }
+    },
     historyApiFallback: {
       rewrites: [
         { from: /game\/bundle.js/, to: '/bundle.js' }

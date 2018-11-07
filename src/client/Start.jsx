@@ -1,35 +1,42 @@
 import React from 'react'
 
 export default class Start extends React.Component {
-  constructor (props) {
-    super(props)
-    this.gotoGame = this.gotoGame.bind(this)
-    this.updateInputValue = this.updateInputValue.bind(this)
-    this.createNewGame = props.newGame
-    this.state = {
-      playerName: ''
+  constructor () {
+    super()
+    const urlParams = new URLSearchParams(window.location.search)
+    let invitationToken = urlParams.get('invitation-token')
+    if (invitationToken) {
+      this.joinGame(invitationToken)
     }
+
+    this.createNewGame = this.createNewGame.bind(this)
   }
 
-  updateInputValue (evt) {
-    console.log(evt)
-    this.setState({
-      playerName: evt.target.value
+  joinGame (invitationToken) {
+    window.fetch(`api/join?token=${invitationToken}`, {
+      method: 'POST'
     })
+      .then((resp) => resp.json())
+      .then((game) => {
+        window.location = `/game?token=${game.playerToken}`
+      })
+      .catch((error) => console.log(error))
   }
 
-  gotoGame () {
-    window.location.href = '/game/123'
+  createNewGame () {
+    window.fetch('api/new', { method: 'POST' })
+      .then((resp) => resp.json())
+      .then((game) => {
+        window.location = `/game?token=${game.playerToken}&invitation-token=${game.invitationToken}`
+      }).catch((error) => {
+        console.log(`Error: ${error}`)
+      })
   }
-
   render () {
     return (
-      <div>
-        <h1>Landingpage</h1>
-        <button onClick={this.gotoGame}>Play</button>
-        <br />
-        <input type='text' id='playerName' onChange={evt => this.updateInputValue(evt)} value={this.state.playerName} />
-        <button onClick={() => this.createNewGame(this.state.playerName)}>Create new game</button>
+      <div className='start-page'>
+        <h1>Huskutlir</h1>
+        <button onClick={this.createNewGame}>Play</button>
       </div>
     )
   }

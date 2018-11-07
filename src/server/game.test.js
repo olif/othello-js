@@ -1,33 +1,33 @@
 const games = require('./game')
 
 test('can create a new game', () => {
-  let [state, err] = games.newGame({ name: 'Arne' })
+  let [state, err] = games.newGame({ name: 'WhitePlayer', token: 'abc' })
 
   expect(err).toBeNull()
-  expect(state.whitePlayer).toBe('Arne')
+  expect(state.whitePlayer).toBe('WhitePlayer')
   expect(state.status).toBe(games.STATUS_WAITING_FOR_OPPONENT)
 })
 
 test('can join game', () => {
-  let [state, err] = games.newGame({ name: 'Arne' });
+  let [state, err] = games.newGame({ name: 'WhitePlayer', token: 'abc' });
 
-  ([state, err] = games.join(state.id, { name: 'Bengan' }))
+  ([state, err] = games.join(state.id, { name: 'BlackPlayer', token: 'cba' }))
 
   expect(err).toBeNull()
-  expect(state.blackPlayer).toBe('Bengan')
+  expect(state.blackPlayer).toBe('BlackPlayer')
   expect(state.status).toBe(games.STATUS_PENDING)
 })
 
 test('cannot join already joined game', () => {
-  let [state] = games.newGame({ name: 'Arne' })
-  games.join(state.id, { name: 'Bengan' })
+  let [state] = games.newGame({ name: 'WhitePlayer', token: 'abc' })
+  games.join(state.id, { name: 'BlackPlayer', token: 'bca' })
 
-  let [, failedJoinErr] = games.join(state.id, { name: 'Pelle' });
-  ([state] = games.state(state.id))
+  let [, failedJoinErr] = games.join(state.id, { name: 'BlackPlayer', token: 'cccc' });
+  ([state] = games.state(state.id, { token: 'bca' }))
 
   expect(failedJoinErr).toMatchObject(new Error('Cannot join already joined game'))
   expect(state.turn).toBe(1)
-  expect(state.blackPlayer).toBe('Bengan')
+  expect(state.blackPlayer).toBe('BlackPlayer')
 })
 
 test('can make opening move', () => {
@@ -143,7 +143,7 @@ test('player can make multiple moves if there is no valid move for opponent', ()
   games.join(state.id, blackPlayer)
 
   games.makeMove(state.id, blackPlayer, { x: 7, y: 0 });
-  ([state] = games.state(state.id))
+  ([state] = games.state(state.id, { token: 'testsa' }))
   expect(state.board).toMatchObject(fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'], // 1
