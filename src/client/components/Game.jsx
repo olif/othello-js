@@ -1,9 +1,15 @@
 import React from 'react'
+import Board from './Board.jsx'
+import ScoreBoard from './ScoreBoard.jsx'
+import StatusModal from './StatusModal.jsx'
+import styled from 'styled-components'
 
-export default class GameBoard extends React.Component {
+export default class Game extends React.Component {
   constructor (props) {
     super(props)
     this.getBoardStyle = this.getBoardStyle.bind(this)
+    this.getStatsForDisc = this.getStatsForDisc.bind(this)
+
     const urlParams = new URLSearchParams(window.location.search)
     let token = urlParams.get('token')
     let invitationToken = urlParams.get('invitation-token')
@@ -13,6 +19,7 @@ export default class GameBoard extends React.Component {
       invitationToken: invitationToken,
       game: {
         disc: 0,
+        turn: 0,
         board: [
           [0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0],
@@ -30,11 +37,14 @@ export default class GameBoard extends React.Component {
     ws.onmessage = (event) => {
       console.log(event)
       const game = JSON.parse(event.data)
-      let newState = this.state.game
+
+      const board = this.state.game.board
+      const disc = this.state.game.disc
       game.discsToFlip.map(val => {
-        newState.board[val.y][val.x] = game.board[val.y][val.x]
+        board[val.y][val.x] = game.board[val.y][val.x]
       })
-      this.setState({ game: newState })
+
+      this.setState({ game: { board: board, turn: game.turn, disc: disc } })
     }
 
     this.handleClick = this.handleClick.bind(this)
@@ -49,12 +59,16 @@ export default class GameBoard extends React.Component {
     window.fetch(`/api/game?token=${this.state.token}`)
       .then((resp) => resp.json())
       .then((game) => {
+        console.log('setting state')
         this.setState({
-          game: game.state,
-          disc: game.state.disc
+          game: game.state
         })
       })
       .catch((error) => console.log(error))
+  }
+
+  getStatsForDisc (disc) {
+    return this.state.game.board.flatMap(x => x).reduce((acc, val) => acc + (val === disc ? 1 : 0))
   }
 
   handleClick (x, y) {
@@ -83,56 +97,62 @@ export default class GameBoard extends React.Component {
   }
 
   render () {
-    return (
-      <div>
-        <table className={'gameboard ' + (this.getBoardStyle())}>
-          <tbody>
-            {
-              this.state.game.board.map((row, i) => {
-                return (
-                  <tr key={i}>
-                    {
-                      row.map((col, j) => {
-                        return (
-                          <td key={`${i},${j}`} onClick={() => this.handleClick(j, i)}>
-                            <Disk key={`${i},${j}`} value={col} />
-                          </td>
-                        )
-                      })
-                    }
-                  </tr>
-                )
-              })
-            }
-          </tbody>
-        </table>
-        <a href={'../?invitation-token=' + this.state.invitationToken}>{this.state.invitationToken}</a>
-      </div>
-    )
-  }
-}
-
-class Disk extends React.Component {
-  constructor () {
-    super()
-
-    this.getClassName = this.getClassName.bind(this)
-  }
-
-  getClassName () {
-    switch (this.props.value) {
-      case 1:
-        return 'disk white'
-      case -1:
-        return 'disk black'
-      default:
-        return 'disk none'
+    const statsState = {
+      game: this.state.game
     }
-  }
 
-  render () {
+    const statsActions = {
+      getStatsForDisc: this.getStatsForDisc
+    }
+
+    const stats = {
+      ...statsState,
+      actions: statsActions
+    }
+
+    const boardState = {
+      board: this.state.game.board,
+      disc: this.state.game.disc
+    }
+
+    const boardActions = {
+      getBoardStyle: this.getBoardStyle,
+      handleClick: this.handleClick
+    }
+
+    const board = {
+      ...boardState,
+      actions: boardActions
+    }
+
+    const Grid = styled.div`
+      display: flex;
+    `
+
+    const Column = styled.div`
+      flex: 1,
+      margin: 0;
+    `
+
+    const LeftColumn = styled(Column)`
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `
+
     return (
-      <span className={this.getClassName()} />
+      <Grid>
+        <LeftColumn>
+          <ScoreBoard item={stats} />
+        </LeftColumn>
+        <Column>
+          <Board item={board} />
+        </Column>
+        <Column>
+          rightcol
+        </Column>
+        <StatusModal game={this.state.game} statsForGameFunc={this.getStatsForDisc} />
+      </Grid>
     )
   }
 }

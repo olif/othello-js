@@ -32,7 +32,8 @@
     "express": "^4.16.4",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
-    "shortid": "^2.2.14"
+    "shortid": "^2.2.14",
+    "styled-components": "^4.0.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
@@ -42,6 +43,7 @@
     "babel-core": "^7.0.0-0",
     "babel-eslint": "^10.0.1",
     "babel-loader": "^8.0.0",
+    "babel-plugin-styled-components": "^1.8.0",
     "clean-webpack-plugin": "^0.1.19",
     "concurrently": "^4.0.1",
     "css-loader": "^0.28.11",

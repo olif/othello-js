@@ -132,7 +132,6 @@ games.setStateChangedCallback(function (event, state) {
   if (players) {
     players.map(token => {
       let ws = sockets[token]
-      console.log(ws)
       ws.send(JSON.stringify(state))
     })
   }

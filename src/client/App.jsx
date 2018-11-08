@@ -1,16 +1,14 @@
-'use strict'
 import React from 'react'
-import GameBoard from './GameBoard.jsx'
-import Start from './Start.jsx'
+import Game from './components/Game.jsx'
+import Start from './components/Start.jsx'
 import './app.css'
 
 export default class App extends React.Component {
   render () {
     return (
       <React.Fragment>
-        {console.log(window.location.pathname)}
         {window.location.pathname.match('^/$') && <Start />}
-        {window.location.pathname.match('^/game?(.*)$') && <GameBoard />}
+        {window.location.pathname.match('^/game?(.*)$') && <Game />}
       </React.Fragment>
     )
   }
