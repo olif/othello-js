@@ -2,12 +2,12 @@ import React from 'react'
 import Score from './Score.jsx'
 import styled from 'styled-components'
 
+const GameStatsWrapper = styled.div`
+  display: block;
+`
+
 export default class ScoreBoard extends React.Component {
   render () {
-    const GameStatsWrapper = styled.div`
-      display: block;
-    `
-
     const whitePlayerItem = {
       disc: 1,
       score: this.props.item.whitePlayerScore,

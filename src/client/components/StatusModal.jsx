@@ -1,6 +1,66 @@
 import React from 'react'
 import styled from 'styled-components'
 
+const Modal = styled.div`
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: #000;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: ${props => props.visible ? 'block' : 'none'};
+`
+
+const ModalContent = styled.div`
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+`
+
+const CloseBtn = styled.span`
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  &:after {
+    content: '\00d7';
+  }
+
+  &:hover, &:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+`
+
+const Text = styled.p`
+  display: block;
+  float: clear;
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+`
+
+const Actions = styled.div`
+  display: flex;
+`
+
+const ActionBtn = styled.button`
+  display: block;
+  flex-grow: 1;
+  padding: 15px 32px;
+  border: none;
+  font-size: 18px;
+  background-color: ${props => props.primary ? '#008CBA' : '#f44336'};
+  color: white;
+  font-weight: bold;
+`
+
 export default class StatusModal extends React.Component {
   constructor (props) {
     super(props)
@@ -46,66 +106,6 @@ export default class StatusModal extends React.Component {
   }
 
   render () {
-    const Modal = styled.div`
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: #000;
-      background-color: rgba(0, 0, 0, 0.4);
-      display: ${props => props.visible ? 'block' : 'none'};
-    `
-
-    const ModalContent = styled.div`
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-    `
-
-    const CloseBtn = styled.span`
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      &:after {
-        content: '\00d7';
-      }
-
-      &:hover, &:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-      }
-    `
-
-    const Text = styled.p`
-      display: block;
-      float: clear;
-      text-align: center;
-      padding: 20px;
-      font-size: 18px;
-    `
-
-    const Actions = styled.div`
-      display: flex;
-    `
-
-    const ActionBtn = styled.button`
-      display: block;
-      flex-grow: 1;
-      padding: 15px 32px;
-      border: none;
-      font-size: 18px;
-      background-color: ${props => props.primary ? '#008CBA' : '#f44336'};
-      color: white;
-      font-weight: bold;
-    `
-
     console.log(`Closed: ${this.state.closed}`)
     console.log(`Status: ${this.props.item.status}`)
     return (

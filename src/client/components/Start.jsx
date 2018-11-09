@@ -3,6 +3,31 @@ import styled from 'styled-components'
 
 import Logo from './Logo.jsx'
 
+const Box = styled.div`
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #339966;
+  align-items: center;
+  justify-content: center;
+`
+
+const Header = styled.h1`
+  text-align: center;
+  color: white;
+`
+
+const PlayButton = styled.button`
+  padding: 15px 32px;
+  border: none;
+  font-size: 18px;
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  box-shadow: inset 0px 0px 0px 2px rgba(0,0,0,0.2);
+`
+
 export default class Start extends React.Component {
   constructor () {
     super()
@@ -37,30 +62,6 @@ export default class Start extends React.Component {
   }
 
   render () {
-    const Box = styled.div`
-      height: 100%;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      background-color: #339966;
-      align-items: center;
-      justify-content: center;
-    `
-
-    const Header = styled.h1`
-      text-align: center;
-      color: white;
-    `
-
-    const PlayButton = styled.button`
-      padding: 15px 32px;
-      border: none;
-      font-size: 18px;
-      background-color: white;
-      color: black;
-      font-weight: bold;
-      box-shadow: inset 0px 0px 0px 2px rgba(0,0,0,0.2);
-    `
     return (
       <Box>
         <Logo />

@@ -4,6 +4,22 @@ import ScoreBoard from './ScoreBoard.jsx'
 import StatusModal from './StatusModal.jsx'
 import styled from 'styled-components'
 
+const Grid = styled.div`
+  display: flex;
+`
+
+const Column = styled.div`
+  flex: 1;
+  margin: 0;
+`
+
+const LeftColumn = styled(Column)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`
+
 export default class Game extends React.Component {
   constructor (props) {
     super(props)
@@ -114,22 +130,6 @@ export default class Game extends React.Component {
       ...boardState,
       actions: boardActions
     }
-
-    const Grid = styled.div`
-      display: flex;
-    `
-
-    const Column = styled.div`
-      flex: 1;
-      margin: 0;
-    `
-
-    const LeftColumn = styled(Column)`
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    `
 
     return (
       <Grid>
