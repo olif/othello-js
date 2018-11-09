@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 
-export default class Stat extends React.Component {
+export default class Score extends React.Component {
   render () {
     const ScoreField = styled.div`
       padding: 20px;
@@ -37,9 +37,7 @@ export default class Stat extends React.Component {
         {
           this.props.item.disc === 1 ? <WhiteDisc /> : <BlackDisc />
         }
-        <Points>
-          {this.props.item.score}
-        </Points>
+        <Points>{this.props.item.score}</Points>
       </ScoreField>
     )
   }

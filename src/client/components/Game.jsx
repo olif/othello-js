@@ -75,10 +75,20 @@ export default class Game extends React.Component {
   }
 
   render () {
+    const whitePlayerScore = this.getStatsForDisc(1)
+    const blackPlayerScore = this.getStatsForDisc(-1)
+
     const scores = {
-      currentTurn: this.state.game.turn,
-      whitePlayerScore: this.getStatsForDisc(1),
-      blackPlayerScore: this.getStatsForDisc(-1)
+      turn: this.state.game.turn,
+      whitePlayerScore: whitePlayerScore,
+      blackPlayerScore: blackPlayerScore
+    }
+
+    const status = {
+      disc: this.state.game.disc,
+      whitePlayerScore: whitePlayerScore,
+      blackPlayerScore: blackPlayerScore,
+      status: this.state.game.status
     }
 
     const boardState = {
@@ -113,7 +123,7 @@ export default class Game extends React.Component {
 
     return (
       <Grid>
-        <StatusModal game={this.state.game} statsForGameFunc={this.getStatsForDisc} />
+        <StatusModal item={status} />
         <LeftColumn>
           <ScoreBoard item={scores} />
         </LeftColumn>
