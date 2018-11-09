@@ -45,18 +45,17 @@ export default class Board extends React.Component {
       box-shadow: inset 0px 0px 0px 2px rgba(255,255,255,0.2);
     `
 
-    console.log(`Disc: ${this.props.item.disc}`)
     return (
       <Board>
         <tbody>
           {
             this.props.item.board.map((row, i) => {
               return (
-                <BoardRow>
+                <BoardRow key={`${i}`}>
                   {
                     row.map((col, j) => {
                       return (
-                        <BoardCell onClick={() => this.props.item.actions.handleClick(j, i)}>
+                        <BoardCell key={`${i}-${j}`} onClick={() => this.props.item.actions.makeMove({ x: j, y: i })}>
                           {{
                             1: <EmptyDisc disc={this.props.item.disc} />,
                             2: <WhiteDisc />,

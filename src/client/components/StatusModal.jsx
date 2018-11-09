@@ -1,4 +1,5 @@
 import React from 'react'
+import styled from 'styled-components'
 
 export default class StatusModal extends React.Component {
   constructor (props) {
@@ -7,8 +8,6 @@ export default class StatusModal extends React.Component {
     this.isVisible = this.isVisible.bind(this)
     this.getMessage = this.getMessage.bind(this)
     this.onNewGameBtn = this.onNewGameBtn.bind(this)
-
-    console.log(props.statsForGameFunc)
 
     this.state = {
       game: props.game,

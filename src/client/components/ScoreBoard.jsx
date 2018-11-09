@@ -10,14 +10,14 @@ export default class ScoreBoard extends React.Component {
 
     const whitePlayerItem = {
       disc: 1,
-      score: this.props.item.actions.getStatsForDisc(1),
-      active: this.props.item.game.turn === 1
+      score: this.props.item.whitePlayerScore,
+      active: this.props.item.turn === 1
     }
 
     const blackPlayerItem = {
       disc: -1,
-      score: this.props.item.actions.getStatsForDisc(-1),
-      active: this.props.item.game.turn === -1
+      score: this.props.item.blackPlayerScore,
+      active: this.props.item.turn === -1
     }
 
     return (

@@ -7,8 +7,6 @@ import styled from 'styled-components'
 export default class Game extends React.Component {
   constructor (props) {
     super(props)
-    this.getBoardStyle = this.getBoardStyle.bind(this)
-    this.getStatsForDisc = this.getStatsForDisc.bind(this)
 
     const urlParams = new URLSearchParams(window.location.search)
     let token = urlParams.get('token')
@@ -47,19 +45,14 @@ export default class Game extends React.Component {
       this.setState({ game: { board: board, turn: game.turn, disc: disc } })
     }
 
-    this.handleClick = this.handleClick.bind(this)
-    this.getAndSetInitialState = this.getAndSetInitialState.bind(this)
+    this.makeMove = this.makeMove.bind(this)
+    this.getStatsForDisc = this.getStatsForDisc.bind(this)
   }
 
-  componentWillMount () {
-    this.getAndSetInitialState()
-  }
-
-  getAndSetInitialState () {
+  componentDidMount () {
     window.fetch(`/api/game?token=${this.state.token}`)
       .then((resp) => resp.json())
       .then((game) => {
-        console.log('setting state')
         this.setState({
           game: game.state
         })
@@ -71,43 +64,21 @@ export default class Game extends React.Component {
     return this.state.game.board.flatMap(x => x).reduce((acc, val) => acc + (val === disc ? 1 : 0))
   }
 
-  handleClick (x, y) {
+  makeMove (position) {
     window.fetch(`/api/make-move?token=${this.state.token}`,
       {
         method: 'POST',
-        body: JSON.stringify({ x: x, y: y }),
+        body: JSON.stringify(position),
         headers: { 'Content-Type': 'application/json' }
-      })
-      .then((resp) => resp.json())
-      .then((game) => {
-
       })
       .catch((error) => console.log(error))
   }
 
-  getBoardStyle () {
-    switch (this.state.game.disc) {
-      case 0:
-        return ''
-      case 1:
-        return 'board-white-player'
-      case -1:
-        return 'board-black-player'
-    }
-  }
-
   render () {
-    const statsState = {
-      game: this.state.game
-    }
-
-    const statsActions = {
-      getStatsForDisc: this.getStatsForDisc
-    }
-
-    const stats = {
-      ...statsState,
-      actions: statsActions
+    const scores = {
+      currentTurn: this.state.game.turn,
+      whitePlayerScore: this.getStatsForDisc(1),
+      blackPlayerScore: this.getStatsForDisc(-1)
     }
 
     const boardState = {
@@ -116,8 +87,7 @@ export default class Game extends React.Component {
     }
 
     const boardActions = {
-      getBoardStyle: this.getBoardStyle,
-      handleClick: this.handleClick
+      makeMove: this.makeMove
     }
 
     const board = {
@@ -130,28 +100,29 @@ export default class Game extends React.Component {
     `
 
     const Column = styled.div`
-      flex: 1,
+      flex: 1;
       margin: 0;
     `
 
     const LeftColumn = styled(Column)`
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
     `
 
     return (
       <Grid>
+        <StatusModal game={this.state.game} statsForGameFunc={this.getStatsForDisc} />
         <LeftColumn>
-          <ScoreBoard item={stats} />
+          <ScoreBoard item={scores} />
         </LeftColumn>
         <Column>
           <Board item={board} />
         </Column>
         <Column>
-          rightcol
+            rightcol
         </Column>
-        <StatusModal game={this.state.game} statsForGameFunc={this.getStatsForDisc} />
       </Grid>
     )
   }
