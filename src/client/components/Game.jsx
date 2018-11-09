@@ -85,7 +85,15 @@ export default class Game extends React.Component {
   }
 
   getStatsForDisc (disc) {
-    return this.state.game.board.flatMap(x => x).reduce((acc, val) => acc + (val === disc ? 1 : 0))
+    let counter = 0
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        if (this.state.game.board[i][j] === disc) {
+          counter++
+        }
+      }
+    }
+    return counter
   }
 
   makeMove (position) {
