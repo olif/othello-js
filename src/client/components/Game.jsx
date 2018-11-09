@@ -18,6 +18,7 @@ export default class Game extends React.Component {
       game: {
         disc: 0,
         turn: 0,
+        status: null,
         board: [
           [0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0],
@@ -34,6 +35,7 @@ export default class Game extends React.Component {
     const ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
     ws.onmessage = (event) => {
       const game = JSON.parse(event.data)
+      console.log(game)
       const board = this.state.game.board
       const disc = this.state.game.disc
 
@@ -45,7 +47,8 @@ export default class Game extends React.Component {
         game: {
           board: board,
           turn: game.turn,
-          disc: disc
+          disc: disc,
+          status: game.status
         }
       })
     }
