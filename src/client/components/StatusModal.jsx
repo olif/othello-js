@@ -5,7 +5,7 @@ export default class StatusModal extends React.Component {
   constructor (props) {
     super(props)
 
-    this.state = { visible: false }
+    this.state = { closed: false }
 
     this.closeModal = this.closeModal.bind(this)
     this.isVisible = this.isVisible.bind(this)
@@ -14,11 +14,11 @@ export default class StatusModal extends React.Component {
   }
 
   isVisible () {
-    return this.props.item.status === 'finished'
+    return !this.state.closed && this.props.item.status === 'finished'
   }
 
-  closeModal (e) {
-    this.setState({ visible: false })
+  closeModal () {
+    this.setState({ closed: true })
   }
 
   getMessage () {
@@ -106,7 +106,7 @@ export default class StatusModal extends React.Component {
     `
 
     return (
-      <Modal visible={this.state.visible}>
+      <Modal visible={this.isVisible()}>
         <ModalContent>
           <CloseBtn onClick={this.closeModal} />
           <Text>

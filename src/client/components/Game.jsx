@@ -31,18 +31,23 @@ export default class Game extends React.Component {
       }
     }
 
-    const ws = new window.WebSocket(`ws://localhost:3000/api?token=${token}`)
+    const ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
     ws.onmessage = (event) => {
-      console.log(event)
       const game = JSON.parse(event.data)
-
       const board = this.state.game.board
       const disc = this.state.game.disc
+
       game.discsToFlip.map(val => {
         board[val.y][val.x] = game.board[val.y][val.x]
       })
 
-      this.setState({ game: { board: board, turn: game.turn, disc: disc } })
+      this.setState({
+        game: {
+          board: board,
+          turn: game.turn,
+          disc: disc
+        }
+      })
     }
 
     this.makeMove = this.makeMove.bind(this)
@@ -77,6 +82,8 @@ export default class Game extends React.Component {
   render () {
     const whitePlayerScore = this.getStatsForDisc(1)
     const blackPlayerScore = this.getStatsForDisc(-1)
+
+    const invitationUrl = `http://${window.location.host}?invitation-token=${this.state.invitationToken}`
 
     const scores = {
       turn: this.state.game.turn,
@@ -131,7 +138,9 @@ export default class Game extends React.Component {
           <Board item={board} />
         </Column>
         <Column>
-            rightcol
+          {
+            this.state.invitationToken ? <a href={invitationUrl}> {invitationUrl} </a> : <p />
+          }
         </Column>
       </Grid>
     )

@@ -1,7 +1,7 @@
 import React from 'react'
-import Game from './components/Game.jsx'
-import Start from './components/Start.jsx'
-import './app.css'
+import Game from './Game.jsx'
+import Start from './Start.jsx'
+import './../app.css'
 
 export default class App extends React.Component {
   render () {

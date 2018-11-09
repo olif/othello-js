@@ -1,4 +1,7 @@
 import React from 'react'
+import styled from 'styled-components'
+
+import Logo from './Logo.jsx'
 
 export default class Start extends React.Component {
   constructor () {
@@ -32,12 +35,38 @@ export default class Start extends React.Component {
         console.log(`Error: ${error}`)
       })
   }
+
   render () {
+    const Box = styled.div`
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      background-color: #339966;
+      align-items: center;
+      justify-content: center;
+    `
+
+    const Header = styled.h1`
+      text-align: center;
+      color: white;
+    `
+
+    const PlayButton = styled.button`
+      padding: 15px 32px;
+      border: none;
+      font-size: 18px;
+      background-color: white;
+      color: black;
+      font-weight: bold;
+      box-shadow: inset 0px 0px 0px 2px rgba(0,0,0,0.2);
+    `
     return (
-      <div className='start-page'>
-        <h1>Huskutlir</h1>
-        <button onClick={this.createNewGame}>Play</button>
-      </div>
+      <Box>
+        <Logo />
+        <Header>Huskutlir</Header>
+        <PlayButton onClick={this.createNewGame}>Play</PlayButton>
+      </Box>
     )
   }
 }
