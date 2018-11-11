@@ -8,7 +8,7 @@ const Box = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #339966;
+  background-color: #226b46;
   align-items: center;
   justify-content: center;
 `
@@ -16,16 +16,23 @@ const Box = styled.div`
 const Header = styled.h1`
   text-align: center;
   color: white;
+  font-size: 4em;
+  margin: 20px;
+  font-family: 'Satisfy', cursive;
 `
 
 const PlayButton = styled.button`
-  padding: 15px 32px;
-  border: none;
-  font-size: 18px;
+  font-size: 24px;
+  padding: 8px 20px;
+  border-radius: 4px;
   background-color: white;
-  color: black;
-  font-weight: bold;
-  box-shadow: inset 0px 0px 0px 2px rgba(0,0,0,0.2);
+  color: #333;
+  font-family: 'Lato', sans-serif;
+
+  &:hover {
+    cursor: pointer;
+    background-color: #eee;
+  }
 `
 
 export default class Start extends React.Component {
@@ -64,8 +71,7 @@ export default class Start extends React.Component {
   render () {
     return (
       <Box>
-        <Logo />
-        <Header>Huskutlir</Header>
+        <Header>Othello.</Header>
         <PlayButton onClick={this.createNewGame}>Play</PlayButton>
       </Box>
     )

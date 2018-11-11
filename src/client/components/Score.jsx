@@ -3,7 +3,8 @@ import styled from 'styled-components'
 
 const ScoreField = styled.div`
   padding: 20px;
-  background-color: ${props => props.active ? '#ccc' : 'none'};
+  background-color: ${props => props.active ? '#eee' : 'none'};
+  border-radius: 4px;
 `
 
 const Disc = styled.span`
@@ -26,7 +27,7 @@ const WhiteDisc = styled(Disc)`
 `
 
 const Points = styled.span`
-  font-size: 30px;
+  font-size: 24px;
   vertical-align: middle;
 `
 
