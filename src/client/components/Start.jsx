@@ -1,8 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
 
-import Logo from './Logo.jsx'
-
 const Box = styled.div`
   height: 100%;
   width: 100%;
@@ -34,46 +32,41 @@ const PlayButton = styled.button`
     background-color: #eee;
   }
 `
-
-export default class Start extends React.Component {
-  constructor () {
-    super()
-    const urlParams = new URLSearchParams(window.location.search)
-    let invitationToken = urlParams.get('invitation-token')
-    if (invitationToken) {
-      this.joinGame(invitationToken)
-    }
-
-    this.createNewGame = this.createNewGame.bind(this)
-  }
-
-  joinGame (invitationToken) {
-    window.fetch(`api/join?token=${invitationToken}`, {
-      method: 'POST'
+const joinGame = function (invitationToken) {
+  window.fetch(`api/join?token=${invitationToken}`, {
+    method: 'POST'
+  })
+    .then((resp) => resp.json())
+    .then((game) => {
+      window.location = `/game?token=${game.playerToken}`
     })
-      .then((resp) => resp.json())
-      .then((game) => {
-        window.location = `/game?token=${game.playerToken}`
-      })
-      .catch((error) => console.log(error))
-  }
-
-  createNewGame () {
-    window.fetch('api/new', { method: 'POST' })
-      .then((resp) => resp.json())
-      .then((game) => {
-        window.location = `/game?token=${game.playerToken}&invitation-token=${game.invitationToken}`
-      }).catch((error) => {
-        console.log(`Error: ${error}`)
-      })
-  }
-
-  render () {
-    return (
-      <Box>
-        <Header>Othello.</Header>
-        <PlayButton onClick={this.createNewGame}>Play</PlayButton>
-      </Box>
-    )
-  }
+    .catch((error) => console.log(error))
 }
+
+const createNewGame = function () {
+  window.fetch('api/new', { method: 'POST' })
+    .then((resp) => resp.json())
+    .then((game) => {
+      window.location = `/game?token=${game.playerToken}&invitation-token=${game.invitationToken}`
+    }).catch((error) => {
+      console.log(`Error: ${error}`)
+    })
+}
+
+const Start = () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  const invitationToken = urlParams.get('invitation-token')
+  if (invitationToken) {
+    console.log(invitationToken)
+    joinGame(invitationToken)
+  }
+
+  return (
+    <Box>
+      <Header>Othello.</Header>
+      <PlayButton onClick={createNewGame}>Play</PlayButton>
+    </Box>
+  )
+}
+
+export default Start

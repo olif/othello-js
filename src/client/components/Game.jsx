@@ -6,18 +6,42 @@ import styled from 'styled-components'
 
 const Grid = styled.div`
   display: flex;
+  height: 100%;
 `
 
 const Column = styled.div`
   flex: 1;
   margin: 0;
+  height: 100%;
 `
 
 const LeftColumn = styled(Column)`
+`
+
+const RightColumn = styled(Column)`
+  background-color: #ddd;
+`
+
+const ScoreSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 46%;
+`
+
+const InvitationSection = styled.div`
+  padding: 20px;
+  height: 20%;
+  font-weight: bold;
+`
+
+const InvitationLink = styled.textarea`
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  resize: none;
 `
 
 export default class Game extends React.Component {
@@ -71,6 +95,7 @@ export default class Game extends React.Component {
 
     this.makeMove = this.makeMove.bind(this)
     this.getStatsForDisc = this.getStatsForDisc.bind(this)
+    this.copyToClipboard = this.copyToClipboard.bind(this)
   }
 
   componentDidMount () {
@@ -106,11 +131,15 @@ export default class Game extends React.Component {
       .catch((error) => console.log(error))
   }
 
+  copyToClipboard (e) {
+    e.target.select()
+    document.execCommand('copy')
+  }
+
   render () {
+    const invitationUrl = `http://${window.location.host}?invitation-token=${this.state.invitationToken}`
     const whitePlayerScore = this.getStatsForDisc(1)
     const blackPlayerScore = this.getStatsForDisc(-1)
-
-    const invitationUrl = `http://${window.location.host}?invitation-token=${this.state.invitationToken}`
 
     const scores = {
       turn: this.state.game.turn,
@@ -143,16 +172,20 @@ export default class Game extends React.Component {
       <Grid>
         <StatusModal item={status} />
         <LeftColumn>
-          <ScoreBoard item={scores} />
+          <InvitationSection>
+            Link to invite opponent. Click to copy.
+            {
+              this.state.invitationToken ? <InvitationLink readOnly onClick={this.copyToClipboard} value={invitationUrl} /> : <p />
+            }
+          </InvitationSection>
+          <ScoreSection>
+            <ScoreBoard item={scores} />
+          </ScoreSection>
         </LeftColumn>
         <Column>
           <Board item={board} />
         </Column>
-        <Column>
-          {
-            this.state.invitationToken ? <a href={invitationUrl}> {invitationUrl} </a> : <p />
-          }
-        </Column>
+        <RightColumn />
       </Grid>
     )
   }

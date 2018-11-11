@@ -9,8 +9,8 @@ const Modal = styled.div`
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: #000;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: #226b46;
+  background-color: rgba(85, 112, 101, 0.5);
   display: ${props => props.visible ? 'block' : 'none'};
 `
 
@@ -18,7 +18,7 @@ const ModalContent = styled.div`
   background-color: #fefefe;
   margin: 15% auto;
   padding: 20px;
-  border: 1px solid #888;
+  border-radius: 4px;
   width: 80%;
 `
 
@@ -53,12 +53,11 @@ const Actions = styled.div`
 const ActionBtn = styled.button`
   display: block;
   flex-grow: 1;
-  padding: 15px 32px;
+  padding: 16px 20px;
   border: none;
   font-size: 18px;
   background-color: ${props => props.primary ? '#008CBA' : '#f44336'};
   color: white;
-  font-weight: bold;
 `
 
 export default class StatusModal extends React.Component {
@@ -84,7 +83,7 @@ export default class StatusModal extends React.Component {
 
   getMessage () {
     if (this.props.item.status !== 'finished') {
-      return 'Game not finished'
+      return 'Game is not finished'
     }
 
     const myDisc = this.props.item.disc
