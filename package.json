@@ -1,5 +1,5 @@
 {
-  "name": "huskutlir",
+  "name": "js-othello",
   "version": "1.0.0",
   "description": "A multiplayer reversi game",
   "private": true,
@@ -19,14 +19,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/olif/huskutlir.git"
+    "url": "git+https://github.com/olif/js-othello.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/olif/huskutlir/issues"
+    "url": "https://github.com/olif/js-othello/issues"
   },
-  "homepage": "https://github.com/olif/huskutlir#readme",
+  "homepage": "https://github.com/olif/js-othello#readme",
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
