@@ -30,15 +30,15 @@ const Points = styled.span`
   vertical-align: middle;
 `
 
-export default class Score extends React.Component {
-  render () {
-    return (
-      <ScoreField active={this.props.item.active}>
-        {
-          this.props.item.disc === 1 ? <WhiteDisc /> : <BlackDisc />
-        }
-        <Points>{this.props.item.score}</Points>
-      </ScoreField>
-    )
-  }
+const Score = ({ item: { active, disc, score } }) => {
+  return (
+    <ScoreField active={active}>
+      {
+        disc === 1 ? <WhiteDisc /> : <BlackDisc />
+      }
+      <Points>{score}</Points>
+    </ScoreField>
+  )
 }
+
+export default Score

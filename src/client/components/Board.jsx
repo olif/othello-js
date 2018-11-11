@@ -42,34 +42,34 @@ const BlackDisc = styled(Disc)`
   box-shadow: inset 0px 0px 0px 2px rgba(255,255,255,0.2);
 `
 
-export default class Board extends React.Component {
-  render () {
-    return (
-      <GameBoard>
-        <tbody>
-          {
-            this.props.item.board.map((row, i) => {
-              return (
-                <BoardRow key={`${i}`}>
-                  {
-                    row.map((col, j) => {
-                      return (
-                        <BoardCell key={`${i}-${j}`} onClick={() => this.props.item.actions.makeMove({ x: j, y: i })}>
-                          {{
-                            1: <EmptyDisc disc={this.props.item.disc} />,
-                            2: <WhiteDisc />,
-                            0: <BlackDisc />
-                          }[col + 1]}
-                        </BoardCell >
-                      )
-                    })
-                  }
-                </BoardRow>
-              )
-            })
-          }
-        </tbody>
-      </GameBoard>
-    )
-  }
+const Board = ({ item: { board, disc, actions } }) => {
+  return (
+    <GameBoard>
+      <tbody>
+        {
+          board.map((row, i) => {
+            return (
+              <BoardRow key={`${i}`}>
+                {
+                  row.map((col, j) => {
+                    return (
+                      <BoardCell key={`${i}-${j}`} onClick={() => actions.makeMove({ x: j, y: i })}>
+                        {{
+                          1: <EmptyDisc disc={disc} />,
+                          2: <WhiteDisc />,
+                          0: <BlackDisc />
+                        }[col + 1]}
+                      </BoardCell >
+                    )
+                  })
+                }
+              </BoardRow>
+            )
+          })
+        }
+      </tbody>
+    </GameBoard>
+  )
 }
+
+export default Board
