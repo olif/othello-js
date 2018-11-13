@@ -18,6 +18,8 @@ const Disconnected = styled(StatusLight)`
 `
 
 const StatusArea = styled.div`
+    display: block;
+    height: 20px;
     > p {
         margin: 0;
     }

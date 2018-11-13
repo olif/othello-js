@@ -63,7 +63,7 @@ const Start = () => {
 
   return (
     <Box>
-      <Header>Othello.</Header>
+      <Header>Othello-js.</Header>
       <PlayButton onClick={createNewGame}>Play</PlayButton>
     </Box>
   )

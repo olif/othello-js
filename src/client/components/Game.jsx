@@ -11,7 +11,6 @@ const GamePage = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 20px;
 `
 
 const Grid = styled.div`
@@ -23,35 +22,15 @@ const Column = styled.div`
   flex: 1;
 `
 
-const CenterColum = styled(Column)`
-  flex: 2;
-`
-
 const ScoreSection = styled.div`
   display: flex;
+  height: 100%;
   align-items: center;
   justify-content: center;
-  height: 60%;
-`
-
-const InvitationSection = styled.div`
-  height: 20%;
-  font-weight: bold;
-  position: relative;
-`
-
-const InvitationLink = styled.textarea`
-  font-size: 12px;
-  cursor: pointer;
-  border: none;
-  width: 100%;
-  resize: none;
-  box-sizing: border-box;
+  flex-direction: column;
 `
 
 const resolveOpponentStatus = function (gameStatus, opponentStatus) {
-  console.log(gameStatus)
-  console.log(opponentStatus)
   if (gameStatus === 'pending' && opponentStatus === 'not connected') return 'disconnected'
   else return opponentStatus
 }
@@ -61,14 +40,19 @@ export default class Game extends React.Component {
     super(props)
 
     const urlParams = new URLSearchParams(window.location.search)
-    let token = urlParams.get('token')
-    let invitationToken = urlParams.get('invitation-token')
+    const token = urlParams.get('token')
+    const invitationToken = urlParams.get('invitation-token')
+    const invitationUrl = `http://${window.location.host}?invitation-token=${invitationToken}`
+    const botMsg = invitationToken ? [
+      { player: 'bot', message: 'Invite opponent by sending them this link:' },
+      { player: 'bot', message: invitationUrl }
+    ] : [{ player: 'bot', message: 'Welcome!' }]
 
     this.state = {
       token: token,
       invitationToken: invitationToken,
       opponentStatus: 'not connected',
-      conversation: [],
+      conversation: botMsg,
       game: {
         disc: 0,
         turn: 0,
@@ -116,7 +100,6 @@ export default class Game extends React.Component {
           this.setState({ opponentStatus: 'disconnected' })
           break
         case 'message':
-          console.log(message)
           this.setState(prevState => ({
             conversation: [...prevState.conversation, { player: 'their', message: message.data }]
           }))
@@ -125,7 +108,6 @@ export default class Game extends React.Component {
 
     this.makeMove = this.makeMove.bind(this)
     this.getStatsForDisc = this.getStatsForDisc.bind(this)
-    this.copyToClipboard = this.copyToClipboard.bind(this)
     this.sendMessage = this.sendMessage.bind(this)
   }
 
@@ -133,7 +115,6 @@ export default class Game extends React.Component {
     window.fetch(`/api/game?token=${this.state.token}`)
       .then((resp) => resp.json())
       .then((game) => {
-        console.log(game)
         this.setState({
           game: game.state,
           opponentStatus: resolveOpponentStatus(game.state.status, game.opponentStatus)
@@ -171,13 +152,7 @@ export default class Game extends React.Component {
     }))
   }
 
-  copyToClipboard (e) {
-    e.target.select()
-    document.execCommand('copy')
-  }
-
   render () {
-    const invitationUrl = `http://${window.location.host}?invitation-token=${this.state.invitationToken}`
     const whitePlayerScore = this.getStatsForDisc(1)
     const blackPlayerScore = this.getStatsForDisc(-1)
 
@@ -227,19 +202,13 @@ export default class Game extends React.Component {
         <Grid>
           <StatusModal item={status} />
           <Column>
-            <InvitationSection>
-              Link to invite opponent. Click to copy.
-              {
-                this.state.invitationToken ? <InvitationLink readOnly onClick={this.copyToClipboard} value={invitationUrl} /> : <p />
-              }
-            </InvitationSection>
             <ScoreSection>
               <ScoreBoard item={scores} />
             </ScoreSection>
           </Column>
-          <CenterColum>
+          <Column>
             <Board item={board} />
-          </CenterColum>
+          </Column>
           <Column>
             <Chat item={chat} />
           </Column>

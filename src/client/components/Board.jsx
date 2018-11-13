@@ -3,31 +3,51 @@ import styled from 'styled-components'
 
 const GameBoard = styled.table`
   border-collapse: collapse;
-  margin: 0 auto;
+  height: 72vh;
+  width: 72vh;
 `
 
-const BoardRow = styled.tr``
+const Row = styled.tr`
+`
 
-const BoardCell = styled.td`
+const Frame = styled.td`
+  background-color: #226b46;
+  box-sizing: border-box;
+  color: #339966;
+  font-weight: normal;
+  text-align: center;
+`
+
+const TopFrame = styled(Frame)`
+  vertical-align: bottom;
+`
+
+const BottomFrame = styled(Frame)`
+  vertical-align: top;
+`
+
+const Corner = styled(Frame)`
+  height: 4vh;
+  width: 4vh;
+`
+
+const Cell = styled.td`
   border: 1px solid #226b46;
   background-color: #339966;
   text-align: center;
   vertical-align: middle;
-`
-
-const FrameCell = styled.th`
-  background-color: #226b46;
-  padding: 10px 20px;
-  color: #339966;
-  font-weight: normal;
+  height: 8vh;
+  width: 8vh;
+  box-sizing: border-box;
 `
 
 const Disc = styled.span`
   display: inline-block;
-  width: 50px;
-  height: 50px;
-  margin: 5px;
-  border-radius: 50px;
+  vertical-align: middle;
+  box-sizing: border-box;
+  height: 7vh;
+  width: 7vh;
+  border-radius: 50%;
 `
 
 const EmptyDisc = styled(Disc)`
@@ -47,49 +67,53 @@ const BlackDisc = styled(Disc)`
   box-shadow: inset 0px 0px 0px 2px rgba(255,255,255,0.2);
 `
 
-const GridX = ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '']
+const GridX = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
 const Board = ({ item: { board, disc, actions } }) => {
   return (
     <GameBoard>
       <thead>
-        <BoardRow>
+        <Row>
+          <Corner />
           {
-            GridX.map((char, nr) => <FrameCell key={`head-${char}-${nr}`}>{char}</FrameCell>)
+            GridX.map((char, nr) => <TopFrame key={`head-${char}-${nr}`}>{char}</TopFrame>)
           }
-        </BoardRow>
+          <Corner />
+        </Row>
       </thead>
       <tbody>
         {
           board.map((row, i) => {
             return (
-              <BoardRow key={`${i}`}>
+              <Row key={`${i}`}>
                 {
                   ['Frame', ...row, 'Frame'].map((col, j) => {
                     return (
                       col === 'Frame'
-                        ? <FrameCell key={`${i}-${j}`}>{i + 1}</FrameCell>
-                        : <BoardCell key={`${i}-${j}`} onClick={() => actions.makeMove({ x: j - 1, y: i })}>
+                        ? <Frame key={`${i}-${j}`}>{i + 1}</Frame>
+                        : <Cell key={`${i}-${j}`} onClick={() => actions.makeMove({ x: j - 1, y: i })}>
                           {{
                             0: <BlackDisc />,
                             1: <EmptyDisc disc={disc} />,
                             2: <WhiteDisc />
                           }[col + 1]}
-                        </BoardCell >
+                        </Cell >
                     )
                   })
                 }
-              </BoardRow>
+              </Row>
             )
           })
         }
       </tbody>
       <tfoot>
-        <BoardRow>
+        <Row>
+          <Corner />
           {
-            GridX.map((char, nr) => <FrameCell key={`foot-${char}-${nr}`}>{char}</FrameCell>)
+            GridX.map((char, nr) => <BottomFrame key={`foot-${char}-${nr}`}>{char}</BottomFrame>)
           }
-        </BoardRow>
+          <Corner />
+        </Row>
       </tfoot>
     </GameBoard>
   )

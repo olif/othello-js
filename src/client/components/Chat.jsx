@@ -4,43 +4,51 @@ import styled from 'styled-components'
 import PlayerStatus from './PlayerStatus.jsx'
 
 const ChatArea = styled.div`
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 72vh;
+  margin: 0 2em;
 `
 
 const Conversation = styled.ul`
-    list-style: none;
-    padding: 2em 0;
-    margin: 0;
-    overflow-y: scroll;
-    max-height: 400px;
-    flex: 1;
+  list-style: none;
+  overflow-y: scroll;
+  flex: 1;
+  padding: 0;
 `
 
-const MyMessage = styled.li`
-    text-align: right;
+const Message = styled.li`
     padding: 0 0.75em;
     margin-bottom: .375em;
     > span {
         background-color: rgba(177,217,164,.5);
         border-radius: 3px;
         display: inline-block;
-        max-width: 75%;
         padding: 0.5em;
     }
 `
 
-const TheirMessage = styled.li`
+const MyMessage = styled(Message)`
+    text-align: right;
+    > span {
+        background-color: rgba(177,217,164,.5);
+        max-width: 75%;
+    }
+`
+
+const BotMessage = styled(Message)`
+    text-align: center;
+    > span {
+        background-color: rgba(255,204,204,.5);
+        max-width: 75%;
+    }
+`
+
+const TheirMessage = styled(Message)`
     text-align: left;
-    padding: 0 0.75em;
-    margin-bottom: .375em;
     > span {
         background-color: rgba(204, 240, 255, .5);
-        border-radius: 3px;
-        display: inline-block;
         max-width: 75%;
-        padding: 0.5em;
     }
 `
 
@@ -51,7 +59,7 @@ const InputText = styled.textarea`
     box-sizing: border-box;
     width: 100%;
     border-radius: 3px;
-    margin: 2em 0;
+    margin: 0;
 `
 
 const Chat = ({ item: { conversation, opponentStatus, actions } }) => {
@@ -70,9 +78,11 @@ const Chat = ({ item: { conversation, opponentStatus, actions } }) => {
         {
           conversation.map((item, i) => {
             return (
-              item.player === 'mine'
-                ? <MyMessage key={i}><span>{item.message}</span></MyMessage>
-                : <TheirMessage key={i}><span>{item.message}</span></TheirMessage>
+              {
+                'mine': <MyMessage key={i}><span>{item.message}</span></MyMessage>,
+                'their': <TheirMessage key={i}><span>{item.message}</span></TheirMessage>,
+                'bot': <BotMessage key={i}><span>{item.message}</span></BotMessage>
+              }[item.player]
             )
           })
         }
