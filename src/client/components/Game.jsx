@@ -2,42 +2,42 @@ import React from 'react'
 import Board from './Board.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import StatusModal from './StatusModal.jsx'
-import PlayerStatus from './PlayerStatus.jsx'
+import Chat from './Chat.jsx'
 
 import styled from 'styled-components'
 
+const GamePage = styled.div`
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+`
+
 const Grid = styled.div`
   display: flex;
-  height: 100%;
+  flex: 1;
 `
 
 const Column = styled.div`
   flex: 1;
-  margin: 0;
-  height: 100%;
 `
 
 const CenterColum = styled(Column)`
   flex: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 `
 
 const ScoreSection = styled.div`
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 50%;
+  height: 60%;
 `
 
 const InvitationSection = styled.div`
   height: 20%;
   font-weight: bold;
   position: relative;
-  margin: 5% 5%;
 `
 
 const InvitationLink = styled.textarea`
@@ -46,6 +46,7 @@ const InvitationLink = styled.textarea`
   border: none;
   width: 100%;
   resize: none;
+  box-sizing: border-box;
 `
 
 const resolveOpponentStatus = function (gameStatus, opponentStatus) {
@@ -67,6 +68,7 @@ export default class Game extends React.Component {
       token: token,
       invitationToken: invitationToken,
       opponentStatus: 'not connected',
+      conversation: [],
       game: {
         disc: 0,
         turn: 0,
@@ -84,8 +86,8 @@ export default class Game extends React.Component {
       }
     }
 
-    const ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
-    ws.onmessage = (event) => {
+    this.ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
+    this.ws.onmessage = (event) => {
       const message = JSON.parse(event.data)
 
       switch (message.event) {
@@ -113,12 +115,18 @@ export default class Game extends React.Component {
         case 'opponent-disconnected':
           this.setState({ opponentStatus: 'disconnected' })
           break
+        case 'message':
+          console.log(message)
+          this.setState(prevState => ({
+            conversation: [...prevState.conversation, { player: 'their', message: message.data }]
+          }))
       }
     }
 
     this.makeMove = this.makeMove.bind(this)
     this.getStatsForDisc = this.getStatsForDisc.bind(this)
     this.copyToClipboard = this.copyToClipboard.bind(this)
+    this.sendMessage = this.sendMessage.bind(this)
   }
 
   componentDidMount () {
@@ -156,6 +164,13 @@ export default class Game extends React.Component {
       .catch((error) => console.log(error))
   }
 
+  sendMessage (message) {
+    this.ws.send(JSON.stringify({ type: 'chat', data: message }))
+    this.setState(prevState => ({
+      conversation: [...prevState.conversation, { player: 'mine', message: message }]
+    }))
+  }
+
   copyToClipboard (e) {
     e.target.select()
     document.execCommand('copy')
@@ -179,8 +194,18 @@ export default class Game extends React.Component {
       status: this.state.game.status
     }
 
-    const opponentStatus = {
+    const chatState = {
+      conversation: this.state.conversation,
       opponentStatus: this.state.opponentStatus
+    }
+
+    const chatActions = {
+      sendMessage: this.sendMessage
+    }
+
+    const chat = {
+      ...chatState,
+      actions: chatActions
     }
 
     const boardState = {
@@ -198,26 +223,28 @@ export default class Game extends React.Component {
     }
 
     return (
-      <Grid>
-        <StatusModal item={status} />
-        <Column>
-          <InvitationSection>
-            Link to invite opponent. Click to copy.
-            {
-              this.state.invitationToken ? <InvitationLink readOnly onClick={this.copyToClipboard} value={invitationUrl} /> : <p />
-            }
-          </InvitationSection>
-          <ScoreSection>
-            <ScoreBoard item={scores} />
-          </ScoreSection>
-        </Column>
-        <CenterColum>
-          <Board item={board} />
-        </CenterColum>
-        <Column>
-          <PlayerStatus item={opponentStatus} />
-        </Column>
-      </Grid >
+      <GamePage>
+        <Grid>
+          <StatusModal item={status} />
+          <Column>
+            <InvitationSection>
+              Link to invite opponent. Click to copy.
+              {
+                this.state.invitationToken ? <InvitationLink readOnly onClick={this.copyToClipboard} value={invitationUrl} /> : <p />
+              }
+            </InvitationSection>
+            <ScoreSection>
+              <ScoreBoard item={scores} />
+            </ScoreSection>
+          </Column>
+          <CenterColum>
+            <Board item={board} />
+          </CenterColum>
+          <Column>
+            <Chat item={chat} />
+          </Column>
+        </Grid >
+      </GamePage>
     )
   }
 }

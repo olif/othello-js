@@ -164,14 +164,19 @@ new ws.Server({ server }).on('connection', (ws, req) => {
       .map(session => session.ws.send(JSON.stringify({ event: events.OPPONENT_CONNECTED })))
 
     ws.on('close', () => {
-      const closedSession = sessions.get(token)
-      closedSession.active = false
+      session.active = false
       try {
-        resolveOpponent(closedSession.gameId, token)
+        resolveOpponent(session.gameId, token)
           .map(session => session.ws.send(JSON.stringify({ event: events.OPPONENT_DISCONNECTED })))
       } catch (err) {
         console.log(err)
       }
+    })
+
+    ws.on('message', (data) => {
+      const json = JSON.parse(data)
+      resolveOpponent(session.gameId, token)
+        .map(session => session.ws.send(JSON.stringify({ event: 'message', data: json.data })))
     })
   } catch (err) {
     console.log(err)

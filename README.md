@@ -7,6 +7,6 @@ A nodejs/react reversi game
 * ~Change font on start page title~
 * ~Improve invitation-token display~
 * ~Add opponent connection status~
-* Add chat capabilities
+* ~Add chat capabilities~
 * Let the board size be responsive/scale to browser size => Add media quries for disc size
 * Convert server to TS
