@@ -105,8 +105,6 @@ export default class StatusModal extends React.Component {
   }
 
   render () {
-    console.log(`Closed: ${this.state.closed}`)
-    console.log(`Status: ${this.props.item.status}`)
     return (
       <Modal visible={!this.state.closed && this.props.item.status === 'finished'}>
         <ModalContent>

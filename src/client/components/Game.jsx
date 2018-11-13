@@ -2,6 +2,8 @@ import React from 'react'
 import Board from './Board.jsx'
 import ScoreBoard from './ScoreBoard.jsx'
 import StatusModal from './StatusModal.jsx'
+import PlayerStatus from './PlayerStatus.jsx'
+
 import styled from 'styled-components'
 
 const Grid = styled.div`
@@ -15,11 +17,12 @@ const Column = styled.div`
   height: 100%;
 `
 
-const LeftColumn = styled(Column)`
-`
-
-const RightColumn = styled(Column)`
-  background-color: #ddd;
+const CenterColum = styled(Column)`
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `
 
 const ScoreSection = styled.div`
@@ -27,13 +30,14 @@ const ScoreSection = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 46%;
+  height: 50%;
 `
 
 const InvitationSection = styled.div`
-  padding: 20px;
   height: 20%;
   font-weight: bold;
+  position: relative;
+  margin: 5% 5%;
 `
 
 const InvitationLink = styled.textarea`
@@ -43,6 +47,13 @@ const InvitationLink = styled.textarea`
   width: 100%;
   resize: none;
 `
+
+const resolveOpponentStatus = function (gameStatus, opponentStatus) {
+  console.log(gameStatus)
+  console.log(opponentStatus)
+  if (gameStatus === 'pending' && opponentStatus === 'not connected') return 'disconnected'
+  else return opponentStatus
+}
 
 export default class Game extends React.Component {
   constructor (props) {
@@ -55,6 +66,7 @@ export default class Game extends React.Component {
     this.state = {
       token: token,
       invitationToken: invitationToken,
+      opponentStatus: 'not connected',
       game: {
         disc: 0,
         turn: 0,
@@ -74,23 +86,34 @@ export default class Game extends React.Component {
 
     const ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
     ws.onmessage = (event) => {
-      const game = JSON.parse(event.data)
-      console.log(game)
-      const board = this.state.game.board
-      const disc = this.state.game.disc
+      const message = JSON.parse(event.data)
 
-      game.discsToFlip.map(val => {
-        board[val.y][val.x] = game.board[val.y][val.x]
-      })
+      switch (message.event) {
+        case 'state-changed':
+          const game = message.data
+          const board = this.state.game.board
+          const disc = this.state.game.disc
 
-      this.setState({
-        game: {
-          board: board,
-          turn: game.turn,
-          disc: disc,
-          status: game.status
-        }
-      })
+          game.discsToFlip.map(val => {
+            board[val.y][val.x] = game.board[val.y][val.x]
+          })
+
+          this.setState({
+            game: {
+              board: board,
+              turn: game.turn,
+              disc: disc,
+              status: game.status
+            }
+          })
+          break
+        case 'opponent-connected':
+          this.setState({ opponentStatus: 'connected' })
+          break
+        case 'opponent-disconnected':
+          this.setState({ opponentStatus: 'disconnected' })
+          break
+      }
     }
 
     this.makeMove = this.makeMove.bind(this)
@@ -102,8 +125,10 @@ export default class Game extends React.Component {
     window.fetch(`/api/game?token=${this.state.token}`)
       .then((resp) => resp.json())
       .then((game) => {
+        console.log(game)
         this.setState({
-          game: game.state
+          game: game.state,
+          opponentStatus: resolveOpponentStatus(game.state.status, game.opponentStatus)
         })
       })
       .catch((error) => console.log(error))
@@ -154,6 +179,10 @@ export default class Game extends React.Component {
       status: this.state.game.status
     }
 
+    const opponentStatus = {
+      opponentStatus: this.state.opponentStatus
+    }
+
     const boardState = {
       board: this.state.game.board,
       disc: this.state.game.disc
@@ -171,7 +200,7 @@ export default class Game extends React.Component {
     return (
       <Grid>
         <StatusModal item={status} />
-        <LeftColumn>
+        <Column>
           <InvitationSection>
             Link to invite opponent. Click to copy.
             {
@@ -181,12 +210,14 @@ export default class Game extends React.Component {
           <ScoreSection>
             <ScoreBoard item={scores} />
           </ScoreSection>
-        </LeftColumn>
-        <Column>
-          <Board item={board} />
         </Column>
-        <RightColumn />
-      </Grid>
+        <CenterColum>
+          <Board item={board} />
+        </CenterColum>
+        <Column>
+          <PlayerStatus item={opponentStatus} />
+        </Column>
+      </Grid >
     )
   }
 }

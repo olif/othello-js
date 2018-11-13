@@ -6,19 +6,41 @@ const ws = require('ws')
 const shortid = require('shortid')
 
 const games = require('./game')
-const app = express()
+const sessionStore = require('./session-store')
+
 const port = process.env.PORT || 8080
 
 const invitationTokens = {}
-const playerTokens = {}
-const sockets = {}
+const sessions = sessionStore.new()
 
+const events = {
+  STATE_CHANGED: 'state-changed',
+  OPPONENT_CONNECTED: 'opponent-connected',
+  OPPONENT_DISCONNECTED: 'opponent-disconnected'
+}
+
+const opponentStatus = {
+  NOT_CONNECTED: 'not connected',
+  CONNECTED: 'connected',
+  DISCONNECTED: 'disconnected'
+}
+
+const app = express()
 const server = http.createServer(app)
-
 app.use(bodyParser.json())
 app.use(express.static('dist'))
-
 app.use('/game', express.static('dist'))
+
+const resolveStatus = function (session) {
+  if (!session) {
+    return opponentStatus.NOT_CONNECTED
+  }
+  return session.active ? opponentStatus.CONNECTED : opponentStatus.OPPONENT_DISCONNECTED
+}
+
+const resolveOpponent = function (gameId, playerToken) {
+  return sessions.all(x => x.gameId === gameId).filter(x => x.token !== playerToken) || []
+}
 
 app.post('/api/new', (req, res) => {
   if (!req.body) {
@@ -26,23 +48,23 @@ app.post('/api/new', (req, res) => {
     return
   }
 
-  let playerToken = shortid.generate()
-  let invitationToken = shortid.generate()
-  let player = { token: playerToken, name: req.body.name || 'unknown' }
+  const playerToken = shortid.generate()
+  const player = { token: playerToken, name: req.body.name || 'unknown' }
 
-  let [state, err] = games.newGame(player)
-
+  const [state, err] = games.newGame(player)
   if (err) {
     res.status(400).send(err)
     return
   }
+  sessions.add(playerToken, state.id, null)
 
+  const invitationToken = shortid.generate()
   invitationTokens[invitationToken] = state.id
-  playerTokens[playerToken] = state.id
 
   res.status(200).send({
     invitationToken: invitationToken,
     playerToken: playerToken,
+    opponentStatus: opponentStatus.NOT_CONNECTED,
     state: state
   })
 })
@@ -54,7 +76,8 @@ app.get('/api/game', (req, res) => {
     return
   }
 
-  let gameId = playerTokens[token]
+  const session = sessions.get(token)
+  const gameId = session.gameId
   if (!gameId) {
     res.status(400).send({ msg: `invalid token: ${token}` })
     return
@@ -66,35 +89,39 @@ app.get('/api/game', (req, res) => {
     return
   }
 
-  res.status(200).send({ state: state })
+  const status = resolveOpponent(gameId, token).map(resolveStatus)[0]
+  res.status(200).send({
+    state: state,
+    opponentStatus: status || opponentStatus.NOT_CONNECTED
+  })
 })
 
 app.post('/api/join', (req, res) => {
-  let invitationToken = req.query.token
+  const invitationToken = req.query.token
   if (!invitationToken) {
     res.status(400).send({ msg: 'invalid token' })
     return
   }
 
-  let gameId = invitationTokens[invitationToken]
+  const gameId = invitationTokens[invitationToken]
   if (!gameId) {
     res.status(400).send({ msg: `no game registered for token: ${invitationToken}` })
     return
   }
 
-  let playerToken = shortid.generate()
-  let player = { token: playerToken, name: req.body.name || 'unknown' }
-  let [state, err] = games.join(gameId, player)
+  const playerToken = shortid.generate()
+  const player = { token: playerToken, name: req.body.name || 'unknown' }
+  const [state, err] = games.join(gameId, player)
   if (err) {
     res.status(500).send({ msg: err })
     return
   }
 
   delete invitationTokens[invitationToken]
-  playerTokens[playerToken] = state.id
-
+  sessions.add(playerToken, state.id, null)
   res.status(200).send({
     playerToken: playerToken,
+    opponentStatus: resolveOpponent(gameId, playerToken).map(resolveStatus)[0],
     state: state
   })
 })
@@ -106,7 +133,7 @@ app.post('/api/make-move', (req, res) => {
     return
   }
 
-  let gameId = playerTokens[token]
+  const { gameId } = sessions.get(token)
   if (!gameId) {
     res.status(400).send({ msg: 'invalid token' })
     return
@@ -118,22 +145,52 @@ app.post('/api/make-move', (req, res) => {
     return
   }
 
-  res.status(200).send(state)
+  res.status(200).send(
+    {
+      state: state,
+      opponentStatus: resolveOpponent(gameId, token).map(resolveStatus)[0]
+    })
 })
 
-let wss = new ws.Server({ server }).on('connection', (ws, req) => {
+new ws.Server({ server }).on('connection', (ws, req) => {
   const uri = url.parse(req.url, true)
   const token = uri.query.token
-  sockets[token] = ws
+  const session = sessions.get(token)
+
+  try {
+    session.ws = ws
+    session.active = true
+    resolveOpponent(session.gameId, token)
+      .map(session => session.ws.send(JSON.stringify({ event: events.OPPONENT_CONNECTED })))
+
+    ws.on('close', () => {
+      const closedSession = sessions.get(token)
+      closedSession.active = false
+      try {
+        resolveOpponent(closedSession.gameId, token)
+          .map(session => session.ws.send(JSON.stringify({ event: events.OPPONENT_DISCONNECTED })))
+      } catch (err) {
+        console.log(err)
+      }
+    })
+  } catch (err) {
+    console.log(err)
+  }
 })
 
 games.setStateChangedCallback(function (event, state) {
-  let players = Object.keys(playerTokens).filter((key) => playerTokens[key] === state.id)
-  if (players) {
-    players.map(token => {
-      let ws = sockets[token]
-      ws.send(JSON.stringify(state))
-    })
+  try {
+    sessions.all(session => session.gameId === state.id)
+      .filter(session => session.ws)
+      .filter(session => session.active)
+      .map(session => {
+        session.ws.send(JSON.stringify({
+          event: events.STATE_CHANGED,
+          data: state
+        }))
+      })
+  } catch (err) {
+    console.log(err)
   }
 })
 
