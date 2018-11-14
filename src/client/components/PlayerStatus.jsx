@@ -5,6 +5,7 @@ const StatusLight = styled.span`
     width: 10px;
     height: 10px;
     border-radius: 50%;
+    margin: 0 1em;
     background-color: #ccc;
     display: inline-block;
 `
@@ -19,7 +20,9 @@ const Disconnected = styled(StatusLight)`
 
 const StatusArea = styled.div`
     display: block;
-    height: 20px;
+    padding: 1em;
+    background-color: #eee;
+    border-radius: 3px;
     > p {
         margin: 0;
     }

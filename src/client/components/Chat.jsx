@@ -14,7 +14,7 @@ const Conversation = styled.ul`
   list-style: none;
   overflow-y: scroll;
   flex: 1;
-  padding: 0;
+  padding: 1em;
 `
 
 const Message = styled.li`
@@ -53,13 +53,14 @@ const TheirMessage = styled(Message)`
 `
 
 const InputText = styled.textarea`
-    border: 1px solid #ccc;
+    border: 2px solid #eee;
     font-size: 1em;
     padding: 0.75em;
     box-sizing: border-box;
     width: 100%;
     border-radius: 3px;
     margin: 0;
+    resize: none;
 `
 
 const Chat = ({ item: { conversation, opponentStatus, actions } }) => {

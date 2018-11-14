@@ -73,7 +73,6 @@ export default class StatusModal extends React.Component {
   }
 
   isVisible () {
-    console.log(this.props.item.status)
     return !this.state.closed && this.props.item.status === 'finished'
   }
 

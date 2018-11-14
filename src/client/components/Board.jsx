@@ -19,11 +19,11 @@ const Frame = styled.td`
 `
 
 const TopFrame = styled(Frame)`
-  vertical-align: bottom;
+  vertical-align: middle;
 `
 
 const BottomFrame = styled(Frame)`
-  vertical-align: top;
+  vertical-align: middle;
 `
 
 const Corner = styled(Frame)`
