@@ -6,7 +6,7 @@ import PlayerStatus from './PlayerStatus.jsx'
 const ChatArea = styled.div`
   display: flex;
   flex-direction: column;
-  height: 72vh;
+  height: 90vh;
   margin: 0 2em;
 `
 

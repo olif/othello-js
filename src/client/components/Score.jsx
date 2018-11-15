@@ -9,9 +9,9 @@ const ScoreField = styled.div`
 
 const Disc = styled.span`
   display: inline-block;
-  height: 30px;
-  width: 30px;
-  border-radius: 30px;
+  height: 9vh;
+  width: 9vh;
+  border-radius: 50%;
   margin: 0 20px;
   vertical-align: middle;
 `
