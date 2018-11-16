@@ -9,4 +9,4 @@ A nodejs/react reversi game
 * ~Add opponent connection status~
 * ~Add chat capabilities~
 * ~Let the board size be responsive/scale to browser size => Add media quries for disc size~
-* Convert server to TS
+* ~Convert server to TS~

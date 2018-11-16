@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist",
+        "allowJs": true,
+        "target": "es2017",
+        "module": "commonjs",
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "strict": true,
+        "noUnusedLocals": true
+    },
+    "include": [
+        "./src/server"
+    ],
+    "exclude": [
+        "./src/client",
+        "node_modules"
+    ]
+}

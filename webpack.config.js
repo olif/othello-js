@@ -2,13 +2,11 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 
-const outputDir = 'dist'
-
-module.exports = {
+module.exports = [{
   entry: './src/client/index.js',
   output: {
-    path: path.join(__dirname, outputDir),
-    filename: 'bundle.js'
+    path: path.join(__dirname, 'dist'),
+    filename: 'client.js'
   },
   module: {
     rules: [{
@@ -33,14 +31,14 @@ module.exports = {
     },
     historyApiFallback: {
       rewrites: [
-        { from: /game\/bundle.js/, to: '/bundle.js' }
+        { from: /game\/bundle.js/, to: '/client.js' }
       ]
     }
   },
   plugins: [
-    new CleanWebpackPlugin([outputDir]),
+    new CleanWebpackPlugin(['dist/client']),
     new HtmlWebpackPlugin({
       template: './public/index.html'
     })
   ]
-}
+}]

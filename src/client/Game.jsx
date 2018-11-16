@@ -34,8 +34,10 @@ const ScoreSection = styled.div`
 `
 
 const resolveOpponentStatus = function (gameStatus, opponentStatus) {
-  if (gameStatus === 'pending' && opponentStatus === common.opponentStatus.NOT_CONNECTED) return 'disconnected'
-  else return opponentStatus
+  return gameStatus === common.gameStatus.STATUS_PENDING &&
+    opponentStatus === common.opponentStatus.NOT_CONNECTED
+    ? common.opponentStatus.DISCONNECTED
+    : opponentStatus
 }
 
 export default class Game extends React.Component {
@@ -54,7 +56,7 @@ export default class Game extends React.Component {
     this.state = {
       token: token,
       invitationToken: invitationToken,
-      opponentStatus: 'not connected',
+      opponentStatus: common.opponentStatus.NOT_CONNECTED,
       conversation: botMsg,
       game: {
         disc: 0,
@@ -97,10 +99,10 @@ export default class Game extends React.Component {
           })
           break
         case common.events.OPPONENT_CONNECTED:
-          this.setState({ opponentStatus: 'connected' })
+          this.setState({ opponentStatus: common.opponentStatus.CONNECTED })
           break
         case common.events.OPPONENT_DISCONNECTED:
-          this.setState({ opponentStatus: 'disconnected' })
+          this.setState({ opponentStatus: common.opponentStatus.DISCONNECTED })
           break
         case common.events.CHAT_MESSAGE:
           this.setState(prevState => ({

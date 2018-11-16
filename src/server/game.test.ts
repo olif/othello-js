@@ -1,41 +1,37 @@
-const games = require('./game')
+import * as games from './game'
+import { gameStatus } from '../common'
 
 test('can create a new game', () => {
-  let [state, err] = games.newGame({ name: 'WhitePlayer', token: 'abc' })
+  const state = games.newGame({ name: 'WhitePlayer', token: 'abc' }) as games.State
 
-  expect(err).toBeNull()
-  expect(state.whitePlayer).toBe('WhitePlayer')
-  expect(state.status).toBe(games.STATUS_WAITING_FOR_OPPONENT)
+  expect(state.status).toBe(gameStatus.STATUS_WAITING_FOR_OPPONENT)
 })
 
 test('can join game', () => {
-  let [state, err] = games.newGame({ name: 'WhitePlayer', token: 'abc' });
+  let state = games.newGame({ name: 'WhitePlayer', token: 'abc' }) as games.State
 
-  ([state, err] = games.join(state.id, { name: 'BlackPlayer', token: 'cba' }))
+  state = games.join(state.id, { name: 'BlackPlayer', token: 'cba' }) as games.State
 
-  expect(err).toBeNull()
-  expect(state.blackPlayer).toBe('BlackPlayer')
-  expect(state.status).toBe(games.STATUS_PENDING)
+  expect(state.status).toBe(gameStatus.STATUS_PENDING)
 })
 
 test('cannot join already joined game', () => {
-  let [state] = games.newGame({ name: 'WhitePlayer', token: 'abc' })
+  let state = games.newGame({ name: 'WhitePlayer', token: 'abc' }) as games.State
   games.join(state.id, { name: 'BlackPlayer', token: 'bca' })
 
-  let [, failedJoinErr] = games.join(state.id, { name: 'BlackPlayer', token: 'cccc' });
-  ([state] = games.state(state.id, { token: 'bca' }))
+  const maybeJoinErr = games.join(state.id, { name: 'BlackPlayer', token: 'cccc' });
+  state = games.state(state.id, { token: 'bca' }) as games.State
 
-  expect(failedJoinErr).toMatchObject(new Error('Cannot join already joined game'))
+  expect(games.isError(maybeJoinErr)).toBeTruthy()
+  expect(maybeJoinErr).toMatchObject(new Error('Cannot join already joined game'))
   expect(state.turn).toBe(1)
-  expect(state.blackPlayer).toBe('BlackPlayer')
 })
 
 test('can make opening move', () => {
-  let player = { name: 'Arne', token: 'Abcs' }
-  let [state, err] = games.newGame(player);
-  ([state, err] = games.makeMove(state.id, player, { x: 4, y: 2 }))
+  const player = { name: 'Arne', token: 'Abcs' }
+  let state = games.newGame(player) as games.State
+  state = games.makeMove(state.id, player, { x: 4, y: 2 }) as games.State
 
-  expect(err).toBeNull()
   expect(state.discsToFlip).toMatchObject([{ x: 4, y: 2 }, { x: 4, y: 3 }])
   expect(state.turn).toBe(-1)
   expect(state.board).toMatchObject(fromPrettyBoard(
@@ -53,11 +49,10 @@ test('can make opening move', () => {
 })
 
 test('cannot make simple invalid move', () => {
-  let player = { name: 'Arne', token: 'adasca' }
-  let [state, err] = games.newGame(player);
-  ([state, err] = games.makeMove(state.id, player, { x: 4, y: 6 }))
+  const player = { name: 'Arne', token: 'adasca' }
+  let state = games.newGame(player) as games.State
+  state = games.makeMove(state.id, player, { x: 4, y: 6 }) as games.State
 
-  expect(err).toBeNull()
   expect(state.discsToFlip).toMatchObject([])
   expect(state.turn).toBe(1)
   expect(state.board).toMatchObject(fromPrettyBoard(
@@ -75,21 +70,21 @@ test('cannot make simple invalid move', () => {
 })
 
 test('cannot make move when it is not players turn', () => {
-  let player = { name: 'Arne', token: 'testsa' }
-  let [state, err] = games.newGame(player, null, games.BLACK_DISC);
-  ([state, err] = games.makeMove(state.id, player, { x: 5, y: 4 }))
+  const player = { name: 'Arne', token: 'testsa' }
+  let state = games.newGame(player, undefined, games.Disc.BLACK_DISC) as games.State
+  const error = games.makeMove(state.id, player, { x: 5, y: 4 })
 
-  expect(err).toMatchObject(new Error('Not players turn'))
-  expect(state).toBeNull()
+  expect(games.isError(error)).toBeTruthy()
+  expect(games.isOk(error)).toBeFalsy()
+  expect(error).toMatchObject(new Error('Not players turn'))
 })
 
 test('can make multiple moves', () => {
-  let whitePlayer = { name: 'White player', token: 'testsa' }
-  let blackPlayer = { name: 'Black player', token: 'cascsdc' }
-  let [state, err] = games.newGame(whitePlayer);
-  ([state, err] = games.makeMove(state.id, whitePlayer, { x: 5, y: 3 }))
+  const whitePlayer = { name: 'White player', token: 'testsa' }
+  const blackPlayer = { name: 'Black player', token: 'cascsdc' }
+  let state = games.newGame(whitePlayer) as games.State
+  state = games.makeMove(state.id, whitePlayer, { x: 5, y: 3 }) as games.State
 
-  expect(err).toBeNull()
   expect(state.discsToFlip).toMatchObject([{ x: 5, y: 3 }, { x: 4, y: 3 }])
   expect(state.turn).toBe(-1)
   expect(state.board).toMatchObject(fromPrettyBoard(
@@ -106,9 +101,8 @@ test('can make multiple moves', () => {
   )
 
   games.join(state.id, blackPlayer);
-  ([state, err] = games.makeMove(state.id, blackPlayer, { x: 5, y: 2 }))
+  state = games.makeMove(state.id, blackPlayer, { x: 5, y: 2 }) as games.State
 
-  expect(err).toBeNull()
   expect(state.discsToFlip).toMatchObject([{ x: 5, y: 2 }, { x: 4, y: 3 }])
   expect(state.turn).toBe(1)
   expect(state.board).toMatchObject(fromPrettyBoard(
@@ -126,9 +120,9 @@ test('can make multiple moves', () => {
 })
 
 test('player can make multiple moves if there is no valid move for opponent', () => {
-  let whitePlayer = { name: 'White player', token: 'testsa' }
-  let blackPlayer = { name: 'Black player', token: 'cascsdc' }
-  let [state] = games.newGame(whitePlayer, fromPrettyBoard([
+  const whitePlayer = { name: 'White player', token: 'testsa' }
+  const blackPlayer = { name: 'Black player', token: 'cascsdc' }
+  let state = games.newGame(whitePlayer, fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'O'], // 1
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'], // 2
@@ -138,12 +132,12 @@ test('player can make multiple moves if there is no valid move for opponent', ()
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
   ]// 0    1    2    3    4    5    6    7))
-  ), -1)
+  ), -1) as games.State
 
   games.join(state.id, blackPlayer)
 
   games.makeMove(state.id, blackPlayer, { x: 7, y: 0 });
-  ([state] = games.state(state.id, { token: 'testsa' }))
+  state = games.state(state.id, { token: 'testsa' }) as games.State
   expect(state.board).toMatchObject(fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'], // 1
@@ -155,13 +149,14 @@ test('player can make multiple moves if there is no valid move for opponent', ()
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
   ]// 0    1    2    3    4    5    6    7
   ))
-  expect(state.turn).toBe(games.BLACK_DISC)
+
+  expect(state.turn).toBe(games.Disc.BLACK_DISC)
 })
 
 test('game is finished when no player can make a move', () => {
-  let whitePlayer = { name: 'White player', token: 'testsa' }
-  let blackPlayer = { name: 'Black player', token: 'cascsdc' }
-  let [state, err] = games.newGame(whitePlayer, fromPrettyBoard([
+  const whitePlayer = { name: 'White player', token: 'testsa' }
+  const blackPlayer = { name: 'Black player', token: 'cascsdc' }
+  let state = games.newGame(whitePlayer, fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 1
     [' ', ' ', 'X', ' ', 'X', ' ', ' ', ' '], // 2
@@ -171,12 +166,11 @@ test('game is finished when no player can make a move', () => {
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 6
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
   ]// 0    1    2    3    4    5    6    7
-  ), games.BLACK_DISC)
+  ), games.Disc.BLACK_DISC) as games.State
   games.join(state.id, blackPlayer);
 
-  ([state, err] = games.makeMove(state.id, blackPlayer, { x: 3, y: 2 }))
+  state = games.makeMove(state.id, blackPlayer, { x: 3, y: 2 }) as games.State
 
-  expect(err).toBeNull()
   expect(state.discsToFlip).toMatchObject([{ x: 3, y: 2 }, { x: 3, y: 3 }])
   expect(state.board).toMatchObject(fromPrettyBoard([
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '], // 0
@@ -189,11 +183,11 @@ test('game is finished when no player can make a move', () => {
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] // 7
   ]// 0    1    2    3    4    5    6    7
   ))
-  expect(state.status).toBe(games.STATUS_FINISHED)
+  expect(state.status).toBe(gameStatus.STATUS_FINISHED)
 })
 
-const fromPrettyBoard = function (arr) {
-  let unprettyBoard = []
+const fromPrettyBoard = function (arr: any) {
+  let unprettyBoard: number[][] = []
   for (let i = 0; i < arr.length; i++) {
     unprettyBoard[i] = []
     for (let j = 0; j < arr.length; j++) {
