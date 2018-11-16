@@ -3,7 +3,9 @@ import Score from './Score.jsx'
 import styled from 'styled-components'
 
 const GameStatsWrapper = styled.div`
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
 `
 
 const ScoreBoard = ({ item: { whitePlayerScore, blackPlayerScore, turn } }) => {

@@ -6,6 +6,8 @@ import Chat from './Chat.jsx'
 
 import styled from 'styled-components'
 
+const common = require('../common.js')
+
 const GamePage = styled.div`
   height: 100%;
   display: flex;
@@ -20,6 +22,7 @@ const Grid = styled.div`
 
 const Column = styled.div`
   flex: 1;
+  margin 0 auto;
 `
 
 const ScoreSection = styled.div`
@@ -31,7 +34,7 @@ const ScoreSection = styled.div`
 `
 
 const resolveOpponentStatus = function (gameStatus, opponentStatus) {
-  if (gameStatus === 'pending' && opponentStatus === 'not connected') return 'disconnected'
+  if (gameStatus === 'pending' && opponentStatus === common.opponentStatus.NOT_CONNECTED) return 'disconnected'
   else return opponentStatus
 }
 
@@ -75,7 +78,7 @@ export default class Game extends React.Component {
       const message = JSON.parse(event.data)
 
       switch (message.event) {
-        case 'state-changed':
+        case common.events.STATE_CHANGED:
           const game = message.data
           const board = this.state.game.board
           const disc = this.state.game.disc
@@ -93,13 +96,13 @@ export default class Game extends React.Component {
             }
           })
           break
-        case 'opponent-connected':
+        case common.events.OPPONENT_CONNECTED:
           this.setState({ opponentStatus: 'connected' })
           break
-        case 'opponent-disconnected':
+        case common.events.OPPONENT_DISCONNECTED:
           this.setState({ opponentStatus: 'disconnected' })
           break
-        case 'message':
+        case common.events.CHAT_MESSAGE:
           this.setState(prevState => ({
             conversation: [...prevState.conversation, { player: 'their', message: message.data }]
           }))

@@ -3,8 +3,8 @@ import styled from 'styled-components'
 
 const GameBoard = styled.table`
   border-collapse: collapse;
-  height: 90vh;
-  width: 90vh;
+  height: 90vmin;
+  width: 90vmin;
   background-color: red;
 `
 
@@ -28,8 +28,8 @@ const BottomFrame = styled(Frame)`
 `
 
 const Corner = styled(Frame)`
-  height: 5vh;
-  width: 5vh;
+  height: 5vmin;
+  width: 5vmin;
 `
 
 const Cell = styled.td`
@@ -37,8 +37,8 @@ const Cell = styled.td`
   background-color: #339966;
   text-align: center;
   vertical-align: middle;
-  height: 10vh;
-  width: 10vh;
+  height: 10vmin;
+  width: 10vmin;
   box-sizing: border-box;
 `
 
@@ -46,8 +46,8 @@ const Disc = styled.span`
   display: inline-block;
   vertical-align: middle;
   box-sizing: border-box;
-  height: 9vh;
-  width: 9vh;
+  height: 9vmin;
+  width: 9vmin;
   border-radius: 50%;
 `
 

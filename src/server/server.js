@@ -7,23 +7,12 @@ const shortid = require('shortid')
 
 const games = require('./game')
 const sessionStore = require('./session-store')
+const common = require('../common.js')
 
 const port = process.env.PORT || 8080
 
 const invitationTokens = {}
 const sessions = sessionStore.new()
-
-const events = {
-  STATE_CHANGED: 'state-changed',
-  OPPONENT_CONNECTED: 'opponent-connected',
-  OPPONENT_DISCONNECTED: 'opponent-disconnected'
-}
-
-const opponentStatus = {
-  NOT_CONNECTED: 'not connected',
-  CONNECTED: 'connected',
-  DISCONNECTED: 'disconnected'
-}
 
 const app = express()
 const server = http.createServer(app)
@@ -33,9 +22,9 @@ app.use('/game', express.static('dist'))
 
 const resolveStatus = function (session) {
   if (!session) {
-    return opponentStatus.NOT_CONNECTED
+    return common.opponentStatus.NOT_CONNECTED
   }
-  return session.active ? opponentStatus.CONNECTED : opponentStatus.OPPONENT_DISCONNECTED
+  return session.active ? common.opponentStatus.CONNECTED : common.opponentStatus.OPPONENT_DISCONNECTED
 }
 
 const resolveOpponent = function (gameId, playerToken) {
@@ -64,7 +53,7 @@ app.post('/api/new', (req, res) => {
   res.status(200).send({
     invitationToken: invitationToken,
     playerToken: playerToken,
-    opponentStatus: opponentStatus.NOT_CONNECTED,
+    opponentStatus: common.opponentStatus.NOT_CONNECTED,
     state: state
   })
 })
@@ -92,7 +81,7 @@ app.get('/api/game', (req, res) => {
   const status = resolveOpponent(gameId, token).map(resolveStatus)[0]
   res.status(200).send({
     state: state,
-    opponentStatus: status || opponentStatus.NOT_CONNECTED
+    opponentStatus: status || common.opponentStatus.NOT_CONNECTED
   })
 })
 
@@ -161,13 +150,13 @@ new ws.Server({ server }).on('connection', (ws, req) => {
     session.ws = ws
     session.active = true
     resolveOpponent(session.gameId, token)
-      .map(session => session.ws.send(JSON.stringify({ event: events.OPPONENT_CONNECTED })))
+      .map(session => session.ws.send(JSON.stringify({ event: common.events.OPPONENT_CONNECTED })))
 
     ws.on('close', () => {
       session.active = false
       try {
         resolveOpponent(session.gameId, token)
-          .map(session => session.ws.send(JSON.stringify({ event: events.OPPONENT_DISCONNECTED })))
+          .map(session => session.ws.send(JSON.stringify({ event: common.events.OPPONENT_DISCONNECTED })))
       } catch (err) {
         console.log(err)
       }
@@ -176,7 +165,7 @@ new ws.Server({ server }).on('connection', (ws, req) => {
     ws.on('message', (data) => {
       const json = JSON.parse(data)
       resolveOpponent(session.gameId, token)
-        .map(session => session.ws.send(JSON.stringify({ event: 'message', data: json.data })))
+        .map(session => session.ws.send(JSON.stringify({ event: common.events.CHAT_MESSAGE, data: json.data })))
     })
   } catch (err) {
     console.log(err)
@@ -190,7 +179,7 @@ games.setStateChangedCallback(function (event, state) {
       .filter(session => session.active)
       .map(session => {
         session.ws.send(JSON.stringify({
-          event: events.STATE_CHANGED,
+          event: common.events.STATE_CHANGED,
           data: state
         }))
       })
