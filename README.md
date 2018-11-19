@@ -1,12 +1,18 @@
 # js-othello
-A nodejs/react reversi game
+A nodejs/react othello/reversi game.
 
-## TODO
-* ~Refactor Start to use simple component, move new and join methods out to module scope~
-* ~Make board middle adjusted~
-* ~Change font on start page title~
-* ~Improve invitation-token display~
-* ~Add opponent connection status~
-* ~Add chat capabilities~
-* ~Let the board size be responsive/scale to browser size => Add media quries for disc size~
-* ~Convert server to TS~
+![Screenshot](screenshot.png "othello-js screenshot")
+
+## How to run
+Npm and node are required.
+
+Run the game by issuing:
+
+    $> npm run start
+
+## How to play
+Start the game by browsing to `localhost` and the chosen port (`8888` by default).
+Click `Play`. The chat window will provide an invitation link that can be sent
+to the opponent. The rules of the game are described [here](https://en.wikipedia.org/wiki/Reversi#Rules).
+
+
