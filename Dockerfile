@@ -1,7 +1,6 @@
-FROM node:latest
+FROM node:11.1.0
 
 ENV PORT=8888
-ENV NODE_ENV=production
 WORKDIR /home/node/app
 
 COPY . ./
