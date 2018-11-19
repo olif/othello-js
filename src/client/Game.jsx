@@ -47,7 +47,7 @@ export default class Game extends React.Component {
     const urlParams = new URLSearchParams(window.location.search)
     const token = urlParams.get('token')
     const invitationToken = urlParams.get('invitation-token')
-    const invitationUrl = `http://${window.location.host}?invitation-token=${invitationToken}`
+    const invitationUrl = `http://${window.location.host}/join?invitation-token=${invitationToken}`
     const botMsg = invitationToken ? [
       { player: 'bot', message: 'Invite opponent by sending them this link:' },
       { player: 'bot', message: invitationUrl }
