@@ -11,5 +11,12 @@ const opponentStatus = {
   DISCONNECTED: 'disconnected'
 }
 
+const gameStatus = {
+  STATUS_FINISHED: 'finished',
+  STATUS_PENDING: 'pending',
+  STATUS_WAITING_FOR_OPPONENT: 'waiting for opponent'
+}
+
 module.exports.events = events
 module.exports.opponentStatus = opponentStatus
+module.exports.gameStatus = gameStatus

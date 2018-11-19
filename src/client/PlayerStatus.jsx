@@ -1,6 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
 
+const common = require('../common.js')
+
 const StatusLight = styled.span`
     width: 10px;
     height: 10px;
@@ -29,14 +31,20 @@ const StatusArea = styled.div`
 `
 
 const PlayerStatus = ({ item: { opponentStatus } }) => {
+  const getStatusElement = function () {
+    switch (opponentStatus) {
+      case common.opponentStatus.NOT_CONNECTED:
+        return <p><StatusLight /> No opponent yet</p>
+      case common.opponentStatus.CONNECTED:
+        return <p><Connected /> Opponent is connected</p>
+      case common.opponentStatus.DISCONNECTED:
+        return <p><Disconnected /> Opponent has disconnected</p>
+    }
+  }
+
   return (
     <StatusArea>
-      {{
-        'not connected': <p><StatusLight /> No opponent yet</p>,
-        'connected': <p><Connected /> Opponent is connected</p>,
-        'disconnected': <p><Disconnected /> Opponent has disconnected</p>
-
-      }[opponentStatus]}
+      {getStatusElement()}
     </StatusArea>
   )
 }
