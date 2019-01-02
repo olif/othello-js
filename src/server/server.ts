@@ -58,6 +58,33 @@ app.post('/api/new', (req, res) => {
   })
 })
 
+app.post('/api/rematch', (req, res) => {
+
+  let token = req.query.token
+  if (!token) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+
+  const { gameId } = sessionStore.get(token)
+  if (!gameId) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+
+  const result = games.reMatch(gameId)
+  if (games.isError(result)) {
+    res.status(400).send({ msg: result.toString() })
+    return
+  }
+
+  res.status(200).send(
+    {
+      state: result,
+      opponentStatus: opponentStatus.CONNECTED
+    })
+})
+
 app.get('/api/game', (req, res) => {
   let token = req.query.token
   if (!token) {
@@ -173,6 +200,22 @@ new WsServer({ server }).on('connection', (ws: any, req: any) => {
 })
 
 games.setStateChangedCallback(function (event, state) {
+  if(event === 'game-rematch'){
+    try {
+      sessionStore.all(session => session.gameId === state.id)
+        .filter(session => session.socket)
+        .filter(session => session.active)
+        .map(session => {
+          session.socket.send(JSON.stringify({
+            event: events.REMATCH,
+            data: state
+          }))
+        })
+    } catch (err) {
+      log.warn(err)
+    }
+    return
+  }
   try {
     sessionStore.all(session => session.gameId === state.id)
       .filter(session => session.socket)

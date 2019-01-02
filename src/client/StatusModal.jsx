@@ -56,7 +56,7 @@ const ActionBtn = styled.button`
   padding: 16px 20px;
   border: none;
   font-size: 18px;
-  background-color: ${props => props.primary ? '#008CBA' : '#f44336'};
+  background-color: ${props => props.primary ? '#008CBA' : props.secondary ? '#32CD32' : '#f44336'};
   color: white;
 `
 
@@ -69,6 +69,7 @@ export default class StatusModal extends React.Component {
     this.closeModal = this.closeModal.bind(this)
     this.isVisible = this.isVisible.bind(this)
     this.getMessage = this.getMessage.bind(this)
+    this.onRematchBtn = this.onRematchBtn.bind(this)
     this.onNewGameBtn = this.onNewGameBtn.bind(this)
   }
 
@@ -99,6 +100,10 @@ export default class StatusModal extends React.Component {
     }
   }
 
+  onRematchBtn () {
+    this.props.onRematch();
+  }
+
   onNewGameBtn () {
     window.location.href = '/'
   }
@@ -114,7 +119,8 @@ export default class StatusModal extends React.Component {
             }
           </Text>
           <Actions>
-            <ActionBtn primary onClick={this.onNewGameBtn}>New Game</ActionBtn>
+            <ActionBtn primary onClick={this.onRematchBtn}>Rematch</ActionBtn>
+            <ActionBtn secondary onClick={this.onNewGameBtn}>New Game</ActionBtn>
             <ActionBtn onClick={this.onNewGameBtn}>Quit</ActionBtn>
           </Actions>
         </ModalContent>

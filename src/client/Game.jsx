@@ -40,6 +40,22 @@ const resolveOpponentStatus = function (gameStatus, opponentStatus) {
     : opponentStatus
 }
 
+const gameInitStats = {
+  disc: 0,
+  turn: 0,
+  status: null,
+  board: [
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, -1, 0, 0, 0],
+    [0, 0, 0, -1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0]
+  ]
+}
+
 export default class Game extends React.Component {
   constructor (props) {
     super(props)
@@ -58,21 +74,7 @@ export default class Game extends React.Component {
       invitationToken: invitationToken,
       opponentStatus: common.opponentStatus.NOT_CONNECTED,
       conversation: botMsg,
-      game: {
-        disc: 0,
-        turn: 0,
-        status: null,
-        board: [
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 1, -1, 0, 0, 0],
-          [0, 0, 0, -1, 1, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0]
-        ]
-      }
+      game: gameInitStats
     }
 
     this.ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
@@ -108,12 +110,15 @@ export default class Game extends React.Component {
           this.setState(prevState => ({
             conversation: [...prevState.conversation, { player: 'their', message: message.data }]
           }))
+        case common.events.REMATCH:
+          this.setState({ game: gameInitStats })
       }
     }
 
     this.makeMove = this.makeMove.bind(this)
     this.getStatsForDisc = this.getStatsForDisc.bind(this)
     this.sendMessage = this.sendMessage.bind(this)
+    this.rematch = this.rematch.bind(this)
   }
 
   componentDidMount () {
@@ -155,6 +160,16 @@ export default class Game extends React.Component {
     this.setState(prevState => ({
       conversation: [...prevState.conversation, { player: 'mine', message: message }]
     }))
+  }
+
+  rematch () {
+    window.fetch(`/api/rematch?token=${this.state.token}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ name: 'mine'}),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .catch((error) => console.log(error))
   }
 
   render () {
@@ -205,7 +220,7 @@ export default class Game extends React.Component {
     return (
       <GamePage>
         <Grid>
-          <StatusModal item={status} />
+          <StatusModal item={status} onRematch={this.rematch} />
           <Column>
             <ScoreSection>
               <ScoreBoard item={scores} />

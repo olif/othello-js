@@ -2,7 +2,8 @@ const events = {
   STATE_CHANGED: 'state-changed',
   OPPONENT_CONNECTED: 'opponent-connected',
   OPPONENT_DISCONNECTED: 'opponent-disconnected',
-  CHAT_MESSAGE: 'chat-message'
+  CHAT_MESSAGE: 'chat-message',
+  REMATCH: 'rematch'
 }
 
 const opponentStatus = {
