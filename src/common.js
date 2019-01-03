@@ -3,7 +3,8 @@ const events = {
   OPPONENT_CONNECTED: 'opponent-connected',
   OPPONENT_DISCONNECTED: 'opponent-disconnected',
   CHAT_MESSAGE: 'chat-message',
-  REMATCH: 'rematch'
+  REMATCH_REQUESTED: 'rematch requested',
+  REMATCH_ACCEPTED: 'rematch accepted'
 }
 
 const opponentStatus = {
@@ -15,7 +16,9 @@ const opponentStatus = {
 const gameStatus = {
   STATUS_FINISHED: 'finished',
   STATUS_PENDING: 'pending',
-  STATUS_WAITING_FOR_OPPONENT: 'waiting for opponent'
+  STATUS_WAITING_FOR_OPPONENT: 'waiting for opponent',
+  STATUS_REMATCH_REQUESTED: 'rematch requested',
+  STATUS_AWAIT_REMATCH_RESPONSE: 'await rematch response'
 }
 
 module.exports.events = events

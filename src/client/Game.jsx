@@ -40,22 +40,6 @@ const resolveOpponentStatus = function (gameStatus, opponentStatus) {
     : opponentStatus
 }
 
-const gameInitStats = {
-  disc: 0,
-  turn: 0,
-  status: null,
-  board: [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, -1, 0, 0, 0],
-    [0, 0, 0, -1, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0]
-  ]
-}
-
 export default class Game extends React.Component {
   constructor (props) {
     super(props)
@@ -74,18 +58,32 @@ export default class Game extends React.Component {
       invitationToken: invitationToken,
       opponentStatus: common.opponentStatus.NOT_CONNECTED,
       conversation: botMsg,
-      game: gameInitStats
+      game: {
+        disc: 0,
+        turn: 0,
+        status: null,
+        board: [
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, -1, 0, 0, 0],
+          [0, 0, 0, -1, 1, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+      }
     }
 
     this.ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
     this.ws.onmessage = (event) => {
       const message = JSON.parse(event.data)
+      const game = message.data
+      const board = this.state.game.board
+      const disc = this.state.game.disc
 
       switch (message.event) {
         case common.events.STATE_CHANGED:
-          const game = message.data
-          const board = this.state.game.board
-          const disc = this.state.game.disc
 
           game.discsToFlip.map(val => {
             board[val.y][val.x] = game.board[val.y][val.x]
@@ -110,8 +108,33 @@ export default class Game extends React.Component {
           this.setState(prevState => ({
             conversation: [...prevState.conversation, { player: 'their', message: message.data }]
           }))
-        case common.events.REMATCH:
-          this.setState({ game: gameInitStats })
+          break
+        case common.events.REMATCH_REQUESTED:
+          if(this.state.game.status !== 'await rematch response'){ 
+            // Happens in the client that made the request which should keep its STATUS_AWAIT_REMATCH_RESPONSE until accepted or denied
+            this.setState({
+              game: { ...this.state.game, status: common.gameStatus.STATUS_REMATCH_REQUESTED }
+            })
+          }
+          break
+        case common.events.REMATCH_ACCEPTED:
+          this.setState({
+            game: {
+              board: [
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, -1, 0, 0, 0],
+                [0, 0, 0, -1, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0]
+              ],
+              turn: game.turn,
+              disc: disc,
+              status: game.status
+            }
+          })
       }
     }
 
@@ -162,8 +185,13 @@ export default class Game extends React.Component {
     }))
   }
 
-  rematch () {
-    window.fetch(`/api/rematch?token=${this.state.token}`,
+  rematch (action) {
+    if(action === 'request'){
+      this.setState({
+        game: {  ...this.state.game, status: common.gameStatus.STATUS_AWAIT_REMATCH_RESPONSE }
+      })
+    }
+    window.fetch(`/api/rematch?token=${this.state.token}&action=${action}`,
       {
         method: 'POST',
         body: JSON.stringify({ name: 'mine'}),
