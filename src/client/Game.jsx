@@ -78,12 +78,12 @@ export default class Game extends React.Component {
     this.ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
     this.ws.onmessage = (event) => {
       const message = JSON.parse(event.data)
-      const game = message.data
-      const board = this.state.game.board
       const disc = this.state.game.disc
 
       switch (message.event) {
         case common.events.STATE_CHANGED:
+          const game = message.data
+          const board = this.state.game.board
           game.discsToFlip.map(val => {
             board[val.y][val.x] = game.board[val.y][val.x]
           })
@@ -117,6 +117,7 @@ export default class Game extends React.Component {
           }
           break
         case common.events.REMATCH_ACCEPTED:
+          const newMatch = JSON.parse(event.data)
           this.setState({
             game: {
               board: [
@@ -129,9 +130,9 @@ export default class Game extends React.Component {
                 [0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0]
               ],
-              turn: game.turn,
+              turn: newMatch.turn,
               disc: disc,
-              status: game.status
+              status: newMatch.status
             }
           })
       }
