@@ -83,7 +83,7 @@ export default class StatusModal extends React.Component {
   }
 
   getMessage () {
-    if(this.props.item.status === 'pendning' || this.props.item.status === 'waiting for opponent'){
+    if (this.props.item.status === 'pending' || this.props.item.status === 'waiting for opponent') {
       return 'Game is not finished yet!'
     }
     const myDisc = this.props.item.disc
@@ -101,7 +101,7 @@ export default class StatusModal extends React.Component {
   }
 
   onRematchBtn () {
-    this.props.onRematch(this.props.item.status === 'finished' ? 'request' : 'accept');
+    this.props.onRematch(this.props.item.status === 'finished' ? 'request' : 'accept')
   }
 
   onNewGameBtn () {

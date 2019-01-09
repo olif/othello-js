@@ -84,7 +84,6 @@ export default class Game extends React.Component {
 
       switch (message.event) {
         case common.events.STATE_CHANGED:
-
           game.discsToFlip.map(val => {
             board[val.y][val.x] = game.board[val.y][val.x]
           })
@@ -110,7 +109,7 @@ export default class Game extends React.Component {
           }))
           break
         case common.events.REMATCH_REQUESTED:
-          if(this.state.game.status !== 'await rematch response'){ 
+          if (this.state.game.status !== 'await rematch response') {
             // Happens in the client that made the request which should keep its STATUS_AWAIT_REMATCH_RESPONSE until accepted or denied
             this.setState({
               game: { ...this.state.game, status: common.gameStatus.STATUS_REMATCH_REQUESTED }
@@ -186,15 +185,15 @@ export default class Game extends React.Component {
   }
 
   rematch (action) {
-    if(action === 'request'){
+    if (action === 'request') {
       this.setState({
-        game: {  ...this.state.game, status: common.gameStatus.STATUS_AWAIT_REMATCH_RESPONSE }
+        game: { ...this.state.game, status: common.gameStatus.STATUS_AWAIT_REMATCH_RESPONSE }
       })
     }
     window.fetch(`/api/rematch?token=${this.state.token}&action=${action}`,
       {
         method: 'POST',
-        body: JSON.stringify({ name: 'mine'}),
+        body: JSON.stringify({ name: 'mine' }),
         headers: { 'Content-Type': 'application/json' }
       })
       .catch((error) => console.log(error))
