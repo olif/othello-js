@@ -32,6 +32,7 @@ interface Game {
   readonly whitePlayer: Player
   blackPlayer: Player | undefined,
   status: string,
+  started: Disc,
   turn: Disc,
   board: Board
 }
@@ -101,12 +102,13 @@ export function newGame (whitePlayer: Player, initState?: Board, initDisc?: Disc
     whitePlayer: whitePlayer,
     blackPlayer: undefined,
     status: gameStatus.STATUS_WAITING_FOR_OPPONENT,
+    started: initDisc || Disc.WHITE_DISC,
     turn: initDisc || Disc.WHITE_DISC,
     board: initState || defaultState()
   }
 
   games[game.id] = game
-  log.info(`Created new game with id: ${game.id}`)
+  log.info(`Created new game with id: ${game.id}. ${games[game.id].turn} begins`)
   return notify(EVENT_GAME_CREATED, state(game.id, whitePlayer))
 }
 
@@ -117,13 +119,12 @@ export function reMatch (gameId: string, action: string) : Result {
       whitePlayer: games[gameId].whitePlayer,
       blackPlayer: games[gameId].blackPlayer,
       status: gameStatus.STATUS_PENDING,
-      turn: 
-      // initDisc || previous winner begins?
-      Disc.WHITE_DISC,
+      started: games[gameId].started * -1,
+      turn: games[gameId].started * -1,
       board: defaultState()
     }
     games[gameId] = game
-    log.info(`Reset game board and scores for rematch in game: ${gameId}`)
+    log.info(`Reset game board and scores for rematch in game: ${gameId}. ${games[game.id].turn} start this match`)
   }
   
   return notify(action === 'request' ? EVENT_GAME_REMATCH_REQUESTED : EVENT_GAME_REMATCH_ACCEPTED, state(gameId, games[gameId].whitePlayer))
