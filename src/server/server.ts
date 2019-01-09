@@ -141,22 +141,35 @@ app.post('/api/make-move', (req, res) => {
     })
 })
 
-app.post('/api/rematch', (req, res) => {
-
+app.post('/api/requestRematch', (req, res) => {
   let token = req.query.token
   if (!token) {
     res.status(400).send({ msg: 'invalid token' })
     return
   }
-
   const { gameId } = sessionStore.get(token)
   if (!gameId) {
     res.status(400).send({ msg: 'invalid token' })
     return
   }
+  games.reMatch(gameId, 'request')
 
-  games.reMatch(gameId, req.query.action)
+  res.status(200).send()
+})
 
+app.post('/api/acceptRematch', (req, res) => {
+  let token = req.query.token
+  if (!token) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+  const { gameId } = sessionStore.get(token)
+  if (!gameId) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+  games.reMatch(gameId, 'accept')
+  
   res.status(200).send()
 })
 

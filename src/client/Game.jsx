@@ -189,14 +189,22 @@ export default class Game extends React.Component {
       this.setState({
         game: { ...this.state.game, status: common.gameStatus.STATUS_AWAIT_REMATCH_RESPONSE }
       })
+      window.fetch(`/api/requestRematch?token=${this.state.token}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ name: 'mine' }),
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .catch((error) => console.log(error))
+    } else if (action === 'accept') {
+      window.fetch(`/api/acceptRematch?token=${this.state.token}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ name: 'mine' }),
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .catch((error) => console.log(error))
     }
-    window.fetch(`/api/rematch?token=${this.state.token}&action=${action}`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ name: 'mine' }),
-        headers: { 'Content-Type': 'application/json' }
-      })
-      .catch((error) => console.log(error))
   }
 
   render () {
