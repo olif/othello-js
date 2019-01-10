@@ -78,13 +78,12 @@ export default class Game extends React.Component {
     this.ws = new window.WebSocket(`ws://${window.location.host}/api?token=${token}`)
     this.ws.onmessage = (event) => {
       const message = JSON.parse(event.data)
+      const disc = this.state.game.disc
 
       switch (message.event) {
         case common.events.STATE_CHANGED:
           const game = message.data
           const board = this.state.game.board
-          const disc = this.state.game.disc
-
           game.discsToFlip.map(val => {
             board[val.y][val.x] = game.board[val.y][val.x]
           })
@@ -108,12 +107,41 @@ export default class Game extends React.Component {
           this.setState(prevState => ({
             conversation: [...prevState.conversation, { player: 'their', message: message.data }]
           }))
+          break
+        case common.events.REMATCH_REQUESTED:
+          if (this.state.game.status !== 'await rematch response') {
+            // Happens in the client that made the request which should keep its STATUS_AWAIT_REMATCH_RESPONSE until accepted or denied
+            this.setState({
+              game: { ...this.state.game, status: common.gameStatus.STATUS_REMATCH_REQUESTED }
+            })
+          }
+          break
+        case common.events.REMATCH_ACCEPTED:
+          const newMatch = JSON.parse(event.data)
+          this.setState({
+            game: {
+              board: [
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, -1, 0, 0, 0],
+                [0, 0, 0, -1, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0]
+              ],
+              turn: newMatch.turn,
+              disc: disc,
+              status: newMatch.status
+            }
+          })
       }
     }
 
     this.makeMove = this.makeMove.bind(this)
     this.getStatsForDisc = this.getStatsForDisc.bind(this)
     this.sendMessage = this.sendMessage.bind(this)
+    this.rematch = this.rematch.bind(this)
   }
 
   componentDidMount () {
@@ -155,6 +183,29 @@ export default class Game extends React.Component {
     this.setState(prevState => ({
       conversation: [...prevState.conversation, { player: 'mine', message: message }]
     }))
+  }
+
+  rematch (action) {
+    if (action === 'request') {
+      this.setState({
+        game: { ...this.state.game, status: common.gameStatus.STATUS_AWAIT_REMATCH_RESPONSE }
+      })
+      window.fetch(`/api/requestRematch?token=${this.state.token}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ name: 'mine' }),
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .catch((error) => console.log(error))
+    } else if (action === 'accept') {
+      window.fetch(`/api/acceptRematch?token=${this.state.token}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ name: 'mine' }),
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .catch((error) => console.log(error))
+    }
   }
 
   render () {
@@ -205,7 +256,7 @@ export default class Game extends React.Component {
     return (
       <GamePage>
         <Grid>
-          <StatusModal item={status} />
+          <StatusModal item={status} onRematch={this.rematch} />
           <Column>
             <ScoreSection>
               <ScoreBoard item={scores} />

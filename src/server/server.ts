@@ -141,6 +141,38 @@ app.post('/api/make-move', (req, res) => {
     })
 })
 
+app.post('/api/requestRematch', (req, res) => {
+  let token = req.query.token
+  if (!token) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+  const { gameId } = sessionStore.get(token)
+  if (!gameId) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+  games.reMatch(gameId, 'request')
+
+  res.status(200).send()
+})
+
+app.post('/api/acceptRematch', (req, res) => {
+  let token = req.query.token
+  if (!token) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+  const { gameId } = sessionStore.get(token)
+  if (!gameId) {
+    res.status(400).send({ msg: 'invalid token' })
+    return
+  }
+  games.reMatch(gameId, 'accept')
+  
+  res.status(200).send()
+})
+
 new WsServer({ server }).on('connection', (ws: any, req: any) => {
   const uri = urlParse(req.url, true)
   const token = Array.isArray(uri.query.token) ? uri.query.token[0] : uri.query.token
@@ -173,13 +205,23 @@ new WsServer({ server }).on('connection', (ws: any, req: any) => {
 })
 
 games.setStateChangedCallback(function (event, state) {
+  let currentEvent = events.STATE_CHANGED;
+  
+  switch (event) {
+    case 'game-rematch-requested':
+      currentEvent = events.REMATCH_REQUESTED
+      break;
+    case 'game-rematch-accepted':
+      currentEvent = events.REMATCH_ACCEPTED
+      break;
+  }
   try {
     sessionStore.all(session => session.gameId === state.id)
       .filter(session => session.socket)
       .filter(session => session.active)
       .map(session => {
         session.socket.send(JSON.stringify({
-          event: events.STATE_CHANGED,
+          event: currentEvent,
           data: state
         }))
       })

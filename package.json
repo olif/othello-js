@@ -4,6 +4,7 @@
   "description": "A multiplayer reversi game",
   "private": true,
   "scripts": {
+    "lint": "standard",
     "test": "jest",
     "build": "webpack --mode production && tsc",
     "start": "npm run build && node dist/server/server.js",
@@ -35,6 +36,7 @@
     "@types/ws": "^6.0.1",
     "awesome-typescript-loader": "^5.2.1",
     "body-parser": "^1.18.3",
+    "eslint": "^5.12.0",
     "express": "^4.16.4",
     "moment": "^2.22.2",
     "react": "^16.4.1",

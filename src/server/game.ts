@@ -15,6 +15,8 @@ export const EVENT_GAME_CREATED = 'game-created'
 export const EVENT_GAME_JOINED = 'game-joined'
 export const EVENT_STATE_CHANGED = 'game-state-changed'
 export const EVENT_GAME_FINISHED = 'game-finished'
+export const EVENT_GAME_REMATCH_REQUESTED = 'game-rematch-requested'
+export const EVENT_GAME_REMATCH_ACCEPTED = 'game-rematch-accepted'
 
 export interface State {
   readonly id: string
@@ -30,6 +32,7 @@ interface Game {
   readonly whitePlayer: Player
   blackPlayer: Player | undefined,
   status: string,
+  started: Disc,
   turn: Disc,
   board: Board
 }
@@ -99,15 +102,33 @@ export function newGame (whitePlayer: Player, initState?: Board, initDisc?: Disc
     whitePlayer: whitePlayer,
     blackPlayer: undefined,
     status: gameStatus.STATUS_WAITING_FOR_OPPONENT,
+    started: initDisc || Disc.WHITE_DISC,
     turn: initDisc || Disc.WHITE_DISC,
     board: initState || defaultState()
   }
 
   games[game.id] = game
-  log.info(`Created new game with id: ${game.id}`)
+  log.info(`Created new game with id: ${game.id}. ${games[game.id].turn} begins`)
   return notify(EVENT_GAME_CREATED, state(game.id, whitePlayer))
 }
 
+export function reMatch (gameId: string, action: string) : Result {
+  if(action === 'accept'){
+    let game = {
+      id: gameId,
+      whitePlayer: games[gameId].whitePlayer,
+      blackPlayer: games[gameId].blackPlayer,
+      status: gameStatus.STATUS_PENDING,
+      started: games[gameId].started * -1,
+      turn: games[gameId].started * -1,
+      board: defaultState()
+    }
+    games[gameId] = game
+    log.info(`Reset game board and scores for rematch in game: ${gameId}. ${games[game.id].turn} start this match`)
+  }
+  
+  return notify(action === 'request' ? EVENT_GAME_REMATCH_REQUESTED : EVENT_GAME_REMATCH_ACCEPTED, state(gameId, games[gameId].whitePlayer))
+}
 
 export function state (id: string, player: Player, discsToFlip?: Position[]) : Result {
   const game = games[id]

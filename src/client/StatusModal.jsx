@@ -56,7 +56,7 @@ const ActionBtn = styled.button`
   padding: 16px 20px;
   border: none;
   font-size: 18px;
-  background-color: ${props => props.primary ? '#008CBA' : '#f44336'};
+  background-color: ${props => props.primary ? '#008CBA' : props.secondary ? '#32CD32' : '#f44336'};
   color: white;
 `
 
@@ -69,7 +69,9 @@ export default class StatusModal extends React.Component {
     this.closeModal = this.closeModal.bind(this)
     this.isVisible = this.isVisible.bind(this)
     this.getMessage = this.getMessage.bind(this)
+    this.onRematchBtn = this.onRematchBtn.bind(this)
     this.onNewGameBtn = this.onNewGameBtn.bind(this)
+    this.getRematchAction = this.getRematchAction.bind(this)
   }
 
   isVisible () {
@@ -81,10 +83,9 @@ export default class StatusModal extends React.Component {
   }
 
   getMessage () {
-    if (this.props.item.status !== 'finished') {
-      return 'Game is not finished'
+    if (this.props.item.status === 'pending' || this.props.item.status === 'waiting for opponent') {
+      return 'Game is not finished yet!'
     }
-
     const myDisc = this.props.item.disc
     const whitePlayerScore = this.props.item.whitePlayerScore
     const blackPlayerScore = this.props.item.blackPlayerScore
@@ -99,13 +100,30 @@ export default class StatusModal extends React.Component {
     }
   }
 
+  onRematchBtn () {
+    this.props.onRematch(this.props.item.status === 'finished' ? 'request' : 'accept')
+  }
+
   onNewGameBtn () {
     window.location.href = '/'
   }
 
+  getRematchAction (status) {
+    switch (status) {
+      case 'finished':
+        return 'Request rematch'
+
+      case 'rematch requested':
+        return 'Accept rematch request'
+
+      case 'await rematch response':
+        return 'Awaiting response'
+    }
+  }
+
   render () {
     return (
-      <Modal visible={!this.state.closed && this.props.item.status === 'finished'}>
+      <Modal visible={!this.state.closed && (this.props.item.status === 'finished' || this.props.item.status === 'rematch requested' || this.props.item.status === 'await rematch response')}>
         <ModalContent>
           <CloseBtn onClick={this.closeModal} />
           <Text>
@@ -114,7 +132,8 @@ export default class StatusModal extends React.Component {
             }
           </Text>
           <Actions>
-            <ActionBtn primary onClick={this.onNewGameBtn}>New Game</ActionBtn>
+            <ActionBtn primary onClick={this.onRematchBtn} disabled={this.props.item.status === 'await rematch response'}> {this.getRematchAction(this.props.item.status)} </ActionBtn>
+            <ActionBtn secondary onClick={this.onNewGameBtn}>New Game</ActionBtn>
             <ActionBtn onClick={this.onNewGameBtn}>Quit</ActionBtn>
           </Actions>
         </ModalContent>
